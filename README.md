@@ -1,5 +1,4 @@
 [![MATLAB R2023a](https://img.shields.io/badge/MATLAB-R2023a-green)](https://nl.mathworks.com/products/new_products/release2023a.html)
-[![MATLAB R2023a](https://img.shields.io/badge/MATLAB-R2023a-green)](https://nl.mathworks.com/products/new_products/release2023a.html)
 
 
 # Systemic-Perspective-DeePC
