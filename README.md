@@ -11,3 +11,7 @@ You will need:
 - `MATLAB Statistics Toolbox` (see [MathWorks product page](https://nl.mathworks.com/products/statistics.html))
 - `CVX` (see [cvxr.com](https://cvxr.com/))
 - `Gurobi` (see [gurobi.com](https://www.gurobi.com/))
+
+## Installation
+
+To clone this repository, see https://nl.mathworks.com/help/simulink/ug/clone-git-repository.html
