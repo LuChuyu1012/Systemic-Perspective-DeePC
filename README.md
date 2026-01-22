@@ -8,6 +8,6 @@ Reference MATLAB implementation accompanying "A Systemic Perspective on Input De
 You will need:
 
 - `MATLAB` (R2022b or later)
-- MATLAB Statistics Toolbox (see [MathWorks product page](https://nl.mathworks.com/products/statistics.html))
-- CVX (see [cvxr.com](https://cvxr.com/))
-- Gurobi (see [gurobi.com](https://www.gurobi.com/))
+- `MATLAB Statistics Toolbox` (see [MathWorks product page](https://nl.mathworks.com/products/statistics.html))
+- `CVX` (see [cvxr.com](https://cvxr.com/))
+- `Gurobi` (see [gurobi.com](https://www.gurobi.com/))
