@@ -21,9 +21,9 @@ y_fields = {'y_seq_opt','y_seq','y','y_out'};
 % ======= Teacher style (your plt_set logic) =======
 plt_set.y_font_dim     = 16;
 plt_set.x_font_dim     = 16;
-plt_set.title_font_dim = 10.5; %#ok<NASGU>
+plt_set.title_font_dim = 10.5; 
 plt_set.thick          = 1.0;      % Thinner lines
-plt_set.ref_thick      = 0.9;      % Thinner reference
+plt_set.ref_thick      = 1.0;      % Thinner reference
 plt_set.plot_unit      = 'centimeters';
 plt_set.fontname       = 'Times';
 plt_set.fontsize       = 12;       % Tick labels
@@ -57,7 +57,7 @@ for c = 1:num_cases
     for gg = 1:numel(g_list)
         g = g_list(gg);
 
-        fname_big = sprintf('s%02d_r%02d_case%02d_g%d%s.mat', ...
+        fname_big = sprintf('sb%02d_r%02d_case%02d_g%d%s.mat', ...
                             sysnum, f_target, si, g, extra_suffix);
 
         if ~isfile(fname_big)
@@ -222,6 +222,10 @@ for c = 1:num_cases
     plot(t, ybar, '-', 'Color', use_rgb(c,:), 'LineWidth', plt_set.thick);
 end
 
+% ======= Add reference (solid black line) =======
+r = sin(2*pi*f_target*(t/Fs));
+plot(t, r, 'k-', 'LineWidth', plt_set.ref_thick);
+
 ax.FontName  = plt_set.fontname;
 ax.FontSize  = plt_set.fontsize;
 ax.LineWidth = 1.0;
@@ -257,7 +261,6 @@ fprintf('FIG saved to: %s\n', fullfile(outdir,[base,'.fig']));
 fprintf('PNG saved to: %s\n', fullfile(outdir,[base,'.png']));
 
 %% ======= Convergence time: "max over runs" =======
-
 function Tconv = local_convtime_maxoverruns(Y_all, lens, Fs, f_target, eps_tol)
     Tconv = NaN;
 
