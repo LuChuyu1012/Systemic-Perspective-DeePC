@@ -6,7 +6,7 @@ SIs       = 0:3;
 nruns     = 20;
 Fs        = 100;
 
-consensus_tol_abs = 0.04;
+consensus_tol_abs = 0.1;
 win_periods_chk   = 0;
 
 P       = max(1, round(Fs / max(f_target, eps)));
@@ -22,7 +22,7 @@ for kk = 1:numel(sys_list)
     for sidx = 1:numel(SIs)
         si = SIs(sidx);
 
-        fname_big = sprintf('sf%02d_r%02d_case%02d.mat', sysnum, f_target, si);
+        fname_big = sprintf('s%02d_r%02d_case%02d.mat', sysnum, f_target, si);
         if ~isfile(fname_big)
             warning('error: %s (skip sys=%d case=%d)', fname_big, sysnum, si);
             continue;

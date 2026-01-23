@@ -31,7 +31,7 @@ n_used    = zeros(1, numel(use_cases));
 for kcase = 1:numel(use_cases)
     si = use_cases(kcase);
 
-    fname_big = sprintf('sf%02d_r%02d_case%02d.mat', sysnum, f_target, si);
+    fname_big = sprintf('s%02d_r%02d_case%02d.mat', sysnum, f_target, si);
     if ~isfile(fname_big)
         fprintf('Skip (file not found): %s\n', fname_big);
         continue;

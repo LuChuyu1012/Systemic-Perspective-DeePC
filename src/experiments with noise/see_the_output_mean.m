@@ -1,6 +1,3 @@
-%% ======= (KEEP original reading) Search best g per case -> plot MEAN y_seq_opt (all cases in ONE figure) + reference
-% ======= Teacher-like style: Times, font sizes, case colors (HEX)
-% ======= NO LEGEND ; Save FIG + PNG to ./figures ; filename includes extra_suffix =======
 clc; clear; close all;
 
 % ======= Configuration (same as your original) =======
@@ -60,7 +57,7 @@ for c = 1:num_cases
     for gg = 1:numel(g_list)
         g = g_list(gg);
 
-        fname_big = sprintf('sb%02d_r%02d_case%02d_g%d%s.mat', ...
+        fname_big = sprintf('s%02d_r%02d_case%02d_g%d%s.mat', ...
                             sysnum, f_target, si, g, extra_suffix);
 
         if ~isfile(fname_big)

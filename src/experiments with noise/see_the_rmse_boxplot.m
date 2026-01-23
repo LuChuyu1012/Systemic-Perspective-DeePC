@@ -39,7 +39,7 @@ for c = 1:num_cases
     for gg = 1:numel(g_list)
         g = g_list(gg);
 
-        fname_big = sprintf('sb%02d_r%02d_case%02d_g%d%s.mat', ...
+        fname_big = sprintf('s%02d_r%02d_case%02d_g%d%s.mat', ...
                             sysnum, f_target, si, g, extra_suffix);
 
         RMS_tmp = NaN(nruns, 1);

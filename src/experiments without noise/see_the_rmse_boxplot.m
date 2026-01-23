@@ -11,7 +11,7 @@ COVRMS  = NaN(numel(SIs), nruns);
 
 for sidx = 1:numel(SIs)
     si = SIs(sidx);
-    fname_big = sprintf('sf%02d_r%02d_case%02d.mat', sysnum, f_target, si);
+    fname_big = sprintf('s%02d_r%02d_case%02d.mat', sysnum, f_target, si);
 
     if ~isfile(fname_big)
         warning('Big file not found: %s (skip case=%d)', fname_big, si);

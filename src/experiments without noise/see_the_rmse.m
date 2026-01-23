@@ -12,7 +12,7 @@ for k = 1:numel(sys_list)
 
     for sidx = 1:numel(SIs)
         si = SIs(sidx);
-        fname_big = sprintf('sf%02d_r%02d_case%02d.mat', sysnum, f_target, si);
+        fname_big = sprintf('s%02d_r%02d_case%02d.mat', sysnum, f_target, si);
 
         if ~isfile(fname_big)
             warning('File not found: %s (sys=%d case=%d)', fname_big, sysnum, si);
