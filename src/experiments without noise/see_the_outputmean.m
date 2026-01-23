@@ -89,16 +89,21 @@ fig = figure('Color','w','Name','Mean trajectory (all cases)','Visible','on');
 fig.Units = plt_set.plot_unit;
 fig.Position(3) = plt_set.plot_dim_x;
 fig.Position(4) = plt_set.plot_dim_y;
-
 fig.Renderer = 'opengl';
 
 ax = axes(fig); hold(ax,'on');
 
+% ======= Plot mean trajectories (all cases) =======
 for kcase = 1:numel(use_cases)
     if isempty(Ymean_all{kcase}), continue; end
     ybar = Ymean_all{kcase}(1:Nmin);
     plot(ax, t, ybar, '-', 'Color', use_rgb(kcase,:), 'LineWidth', plt_set.thick);
 end
+
+% ======= Add reference signal (solid black line) =======
+t_sec = t / Fs;
+r = sin(2*pi*f_target*t_sec);
+plot(ax, t, r, '-', 'Color', 'k', 'LineWidth', plt_set.ref_thick);
 
 ax.FontName  = plt_set.fontname;
 ax.FontSize  = plt_set.fontsize;
