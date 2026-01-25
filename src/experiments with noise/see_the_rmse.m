@@ -8,8 +8,10 @@ nruns    = 20;
 Fs      = 100;
 eps_tol = 0.1;
 
-g_list       = [0 1 2 3];
-extra_suffix = '_se1e-02';
+g_list = [0 1 2 3];
+
+SNRdB_target = 20;
+extra_suffix = sprintf('_snr%02ddB', round(SNRdB_target));
 
 lambda_list = [0.001 0.01 0.1 1];
 

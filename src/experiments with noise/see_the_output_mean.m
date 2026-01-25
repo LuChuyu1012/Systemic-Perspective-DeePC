@@ -1,36 +1,33 @@
 clc; clear; close all;
 
-% ======= Configuration (same as your original) =======
 sysnum    = 6;
 f_target  = 2;
 SIs       = 0:3;
 nruns     = 20;
 
-Fs      = 100;     % Sampling frequency
-eps_tol = 0.1;     % Convergence threshold ε for selecting g (max distance to reference)
+Fs      = 100;
+eps_tol = 0.1;
 
 g_list       = 0:3;
-extra_suffix = '_se1e-02';
 
-% g -> lambda_g (same as your original)
+SNRdB_target = 20;
+extra_suffix = sprintf('_snr%02ddB', round(SNRdB_target));
+
 lambda_list = [0.001 0.01 0.1 1];
 
-% Candidate y fields (for robust convergence-time reading, same as your original)
 y_fields = {'y_seq_opt','y_seq','y','y_out'};
 
-% ======= Teacher style (your plt_set logic) =======
 plt_set.y_font_dim     = 16;
 plt_set.x_font_dim     = 16;
-plt_set.title_font_dim = 10.5; 
-plt_set.thick          = 1.0;      % Thinner lines
-plt_set.ref_thick      = 1.0;      % Thinner reference
+plt_set.title_font_dim = 10.5;
+plt_set.thick          = 1.0;
+plt_set.ref_thick      = 1.0;
 plt_set.plot_unit      = 'centimeters';
 plt_set.fontname       = 'Times';
-plt_set.fontsize       = 12;       % Tick labels
-plt_set.plot_dim_x     = 9;        % Single figure, single column
+plt_set.fontsize       = 12;
+plt_set.plot_dim_x     = 9;
 plt_set.plot_dim_y     = 6;
 
-% ======= Case colors (consistent with previous bar charts: case=0..3) =======
 case_hex_all = {'#007191', '#62c8d3', '#f47a00', '#d31f11'};
 use_cases = SIs(:).';
 
@@ -40,7 +37,6 @@ for k = 1:numel(use_cases)
     use_rgb(k,:) = hex2rgb(case_hex_all{si+1});
 end
 
-%% ======= Stage 1: search best g for each case =======
 num_cases = numel(SIs);
 best_g    = NaN(1, num_cases);
 best_meanRMS = NaN(1, num_cases);
@@ -57,7 +53,7 @@ for c = 1:num_cases
     for gg = 1:numel(g_list)
         g = g_list(gg);
 
-        fname_big = sprintf('sb%02d_r%02d_case%02d_g%d%s.mat', ...
+        fname_big = sprintf('s%02d_r%02d_case%02d_g%d%s.mat', ...
                             sysnum, f_target, si, g, extra_suffix);
 
         if ~isfile(fname_big)
@@ -133,7 +129,6 @@ for c = 1:num_cases
         si, gstar, lam, num2str(best_convT(c)), best_meanRMS(c), why);
 end
 
-%% ======= Stage 2: read y_seq_opt under best g -> pointwise mean =======
 Ymean_all = cell(1, num_cases);
 N_all     = NaN(1, num_cases);
 n_used    = zeros(1, num_cases);
@@ -147,7 +142,7 @@ for c = 1:num_cases
         continue;
     end
 
-    fname_best = sprintf('sb%02d_r%02d_case%02d_g%d%s.mat', ...
+    fname_best = sprintf('s%02d_r%02d_case%02d_g%d%s.mat', ...
                          sysnum, f_target, si, g, extra_suffix);
 
     if ~isfile(fname_best)
@@ -203,11 +198,8 @@ if isempty(valid)
 end
 
 Nmin = min(N_all(valid));
-
-% ======= Unified x-axis in samples (NOT seconds) =======
 t = (0:Nmin-1).';
 
-%% ======= Plot: mean trajectories of all cases (single figure) =======
 fig = figure('Color','w','Name','Mean trajectory (all cases)');
 fig.Units = plt_set.plot_unit;
 fig.Position(3) = plt_set.plot_dim_x;
@@ -222,7 +214,6 @@ for c = 1:num_cases
     plot(t, ybar, '-', 'Color', use_rgb(c,:), 'LineWidth', plt_set.thick);
 end
 
-% ======= Add reference (solid black line) =======
 r = sin(2*pi*f_target*(t/Fs));
 plot(t, r, 'k-', 'LineWidth', plt_set.ref_thick);
 
@@ -245,7 +236,6 @@ set(ax,'LooseInset', max(get(ax,'TightInset'), 0.02));
 fig.PaperPositionMode = 'auto';
 drawnow;
 
-%% ======= Save to ./figures (FIG + PNG); filename includes extra_suffix =======
 outdir = fullfile(pwd, 'figures');
 if ~exist(outdir,'dir'); mkdir(outdir); end
 
@@ -260,7 +250,6 @@ exportgraphics(fig, fullfile(outdir,[base,'.png']), 'Resolution',300, 'Backgroun
 fprintf('FIG saved to: %s\n', fullfile(outdir,[base,'.fig']));
 fprintf('PNG saved to: %s\n', fullfile(outdir,[base,'.png']));
 
-%% ======= Convergence time: "max over runs" =======
 function Tconv = local_convtime_maxoverruns(Y_all, lens, Fs, f_target, eps_tol)
     Tconv = NaN;
 
@@ -301,7 +290,6 @@ function Tconv = local_convtime_maxoverruns(Y_all, lens, Fs, f_target, eps_tol)
     end
 end
 
-%% ======= Local: hex -> rgb =======
 function rgb = hex2rgb(h)
     if isstring(h), h = char(h); end
     h = strtrim(h);

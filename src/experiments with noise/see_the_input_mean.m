@@ -9,7 +9,9 @@ Fs      = 100;
 eps_tol = 0.1;
 
 g_list       = 0:3;
-extra_suffix = '_se1e-02';
+
+SNRdB_target = 20;  
+extra_suffix = sprintf('_snr%02ddB', round(SNRdB_target));
 
 lambda_list = [0.001 0.01 0.1 1];
 
@@ -17,7 +19,7 @@ y_fields = {'y_seq_opt','y_seq','y','y_out'};
 
 plt_set.y_font_dim     = 16;
 plt_set.x_font_dim     = 16;
-plt_set.title_font_dim = 10.5; %#ok<NASGU>
+plt_set.title_font_dim = 10.5; 
 plt_set.thick          = 1.0;
 plt_set.ref_thick      = 0.9;
 plt_set.plot_unit      = 'centimeters';
@@ -50,6 +52,7 @@ for c = 1:num_cases
     for gg = 1:numel(g_list)
         g = g_list(gg);
 
+        % ======= CHANGED: "sb" -> "s" to match saved filenames =======
         fname_big = sprintf('s%02d_r%02d_case%02d_g%d%s.mat', ...
                             sysnum, f_target, si, g, extra_suffix);
 
@@ -139,7 +142,8 @@ for c = 1:num_cases
         continue;
     end
 
-    fname_best = sprintf('sb%02d_r%02d_case%02d_g%d%s.mat', ...
+    % ======= CHANGED: "sb" -> "s" to match saved filenames =======
+    fname_best = sprintf('s%02d_r%02d_case%02d_g%d%s.mat', ...
                          sysnum, f_target, si, g, extra_suffix);
 
     if ~isfile(fname_best)
@@ -196,7 +200,6 @@ end
 
 Nmin = min(N_all(valid));
 
-% ======= ONLY CHANGE 1: x-axis in samples (NOT seconds) =======
 t = (0:Nmin-1).';
 
 fig = figure('Color','w','Name','Mean input (all cases)');
@@ -217,7 +220,6 @@ ax.FontName  = plt_set.fontname;
 ax.FontSize  = plt_set.fontsize;
 ax.LineWidth = 1.0;
 
-% ======= ONLY CHANGE 2: xlabel text =======
 xlab = xlabel('t [samples]');
 ylab = ylabel('u(t)');
 set(xlab, 'FontName', plt_set.fontname, 'FontSize', plt_set.x_font_dim);

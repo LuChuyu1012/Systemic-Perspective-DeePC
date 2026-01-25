@@ -7,7 +7,9 @@ nruns        = 20;
 Fs           = 100;
 eps_tol      = 0.1;
 g_list       = 0:3;
-extra_suffix = '_se1e-02';
+
+SNRdB_target = 20;
+extra_suffix = sprintf('_snr%02ddB', round(SNRdB_target));
 
 lambda_list = [0.001 0.01 0.1 1];
 
@@ -147,7 +149,7 @@ for ci = 1:num_cases
         continue;
     end
 
-    fname_best = sprintf('sb%02d_r%02d_case%02d_g%d%s.mat', ...
+    fname_best = sprintf('s%02d_r%02d_case%02d_g%d%s.mat', ...
                          sysnum, f_target, si, g, extra_suffix);
     if ~isfile(fname_best)
         warning('File not found: %s (skip case=%d)', fname_best, si);
@@ -180,9 +182,7 @@ for ci = 1:num_cases
 
     N = min(allY_len);
 
-    % ======= CHANGED: samples axis (NOT seconds) =======
     t = (0:N-1).';
-
     r = sin(2*pi*f_target*(t/Fs));
 
     lam = lambda_list(g+1);
@@ -191,7 +191,6 @@ for ci = 1:num_cases
     fig.Units = plt_set.plot_unit;
     fig.Position(3) = plt_set.plot_dim_x;
     fig.Position(4) = plt_set.plot_dim_y;
-
     fig.Renderer = 'opengl';
 
     ax = gca; hold(ax,'on');
@@ -216,7 +215,6 @@ for ci = 1:num_cases
     ax.FontSize  = plt_set.fontsize;
     ax.LineWidth = 1.0;
 
-    % ======= CHANGED: xlabel text =======
     xlab = xlabel('t [samples]');
     ylab = ylabel('y(t)');
     set(xlab, 'FontName', plt_set.fontname, 'FontSize', plt_set.x_font_dim);
@@ -238,7 +236,7 @@ for ci = 1:num_cases
     base = strrep(base, '.', 'p');
 
     ws = warning; warning('off','all');
-    cleanupObj = onCleanup(@() warning(ws));
+    cleanupObj = onCleanup(@() warning(ws)); 
 
     savefig(fig, fullfile(outdir,[base,'.fig']));
     exportgraphics(fig, fullfile(outdir,[base,'.png']), 'Resolution',300, 'BackgroundColor','white');

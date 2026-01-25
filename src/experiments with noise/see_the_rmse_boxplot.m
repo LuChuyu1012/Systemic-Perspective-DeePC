@@ -8,8 +8,10 @@ nruns    = 20;
 Fs      = 100;
 eps_tol = 0.2;
 
-g_list       = [0 1 2 3];
-extra_suffix = '_se5e-03';
+g_list = [0 1 2 3];
+
+SNRdB_target = 20;
+extra_suffix = sprintf('_snr%02ddB', round(SNRdB_target));
 
 lambda_list = [0.001 0.01 0.1 1];
 
@@ -120,7 +122,7 @@ for c = 1:num_cases
     fprintf('case=%d | best g=%d (λg=%.3g) | ConvTime=%s | mean(RMSE)=%.4g | pick=%s\n', ...
         si, gstar, lam, num2str(best_convT(c)), best_meanRMS(c), why);
 
-    fname_best = sprintf('sb%02d_r%02d_case%02d_g%d%s.mat', ...
+    fname_best = sprintf('s%02d_r%02d_case%02d_g%d%s.mat', ...
                          sysnum, f_target, si, gstar, extra_suffix);
     [SNRYN_out(c), SNRUN_out(c)] = local_extract_snr(fname_best, sysnum, f_target, si);
 end
@@ -130,12 +132,7 @@ labels = cell(1, num_cases);
 
 for c = 1:num_cases
     Data(:, c) = best_RMS_cols{c}(:);
-
-    if isfinite(best_g(c))
-        labels{c} = sprintf('case=%d', SIs(c));
-    else
-        labels{c} = sprintf('case=%d', SIs(c));
-    end
+    labels{c} = sprintf('case=%d', SIs(c));
 end
 
 plt_set.y_font_dim     = 16;
