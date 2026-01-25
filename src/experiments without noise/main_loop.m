@@ -32,7 +32,7 @@ for sysnum = 1:6
         big = struct();
 
         for i = 1:20
-            rng(i);
+            rng(1);
 
             % ======= (only used by multisine) =======
             k  = 0:(T-1);       % time index 
@@ -118,7 +118,6 @@ for sysnum = 1:6
 
             varname = sprintf('s%02d_r%02d_case%02d_run%02d', sysnum, f_target, si, i);
             big.(varname) = struct( ...
-                'seed',          i, ...
                 'PE_rank',       PE_rank, ...
                 'rms_error',     rms_error, ...
                 'error',         error(:), ...
