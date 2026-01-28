@@ -38,7 +38,7 @@ for gidx = 0:3
 
         for si = 0:3
 
-            % ======= NEW: filename tag uses SNR instead of sigma_e =======
+
             snr_tag  = sprintf('snr%02ddB', round(SNRdB_target));
             fname_big = sprintf('s%02d_r%02d_case%02d_g%d_%s.mat', ...
                                 sysnum, f_target, si, gidx, snr_tag);
