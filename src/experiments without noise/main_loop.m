@@ -48,25 +48,23 @@ for sysnum = 1:6
                     Jmax = 40;               
                     u_seq = zeros(size(k));
 
-                    for j = 0:Jmax
+                    for j = 1:Jmax
                         phi_j = -pi * j*(j-1) / Jmax;  
                         A_j   = 1;                     
                         u_seq = u_seq + A_j * sin( 2*pi*j*(f0/fs)*k + phi_j );
                     end
 
-        
 
                 case 2
                     Jmax = 36;               
                     u_seq = zeros(size(k));
 
-                    for j = 0:Jmax
+                    for j = 1:Jmax
                         phi_j = -pi * j*(j-1) / Jmax;  
                         A_j   = 1;                      
                         u_seq = u_seq + A_j * sin( 2*pi*j*(f0/fs)*k + phi_j );
                     end
 
-               
 
                 case 3
                     % 20 Hz -> j_min = 20 / 0.5 = 40
@@ -84,7 +82,13 @@ for sysnum = 1:6
                         u_seq = u_seq + A_j * sin( 2*pi*j*(f0/fs)*k + phi_j );
                     end
 
-                 
+
+
+
+
+        
+
+
 
                 otherwise
                     error('unknown si = %d', si);

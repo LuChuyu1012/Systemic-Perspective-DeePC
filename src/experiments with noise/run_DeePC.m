@@ -27,7 +27,7 @@ rng(randseed)
     
     % 1. Initialize past input and output data
 
-     u_ini=4*rand(1, T_ini)' -2;
+     u_ini=2*rand(1, T_ini)' -1;
 
     y_ini = zeros(T_ini, 1);  
 
@@ -36,7 +36,8 @@ rng(randseed)
     for i = 1:T_ini
         [y_ini(i), x_tmp] = system_dynamics_global(u_ini(i), x_tmp,sys,i,noise);
     end
-    x_seq(:,1) = x_tmp; 
+    x_seq(:,1) = x_tmp; % Becareful bc with the current initialization, if you give an IC different from (0,0), you will not have it after this step (but you will have the free-response)
+
 
 
 
