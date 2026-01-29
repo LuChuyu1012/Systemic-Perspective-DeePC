@@ -34,7 +34,7 @@ All generated results, including figures and saved data files, can be found in t
 
 ## Benchmark case study: LTI reference tracking with measurement noise
 
-Consider the following discrete-time linear time-invariant (LTI) system with an additive measurement disturbance (strategy noise):
+Consider the following discrete-time linear time-invariant (LTI) system with an additive measurement disturbance:
 \[
 \begin{aligned}
 x(k+1) &= A x(k) + B u(k),\\
