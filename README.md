@@ -43,7 +43,7 @@ x(k+1)=Ax(k)+Bu(k),\qquad y(k)=Cx(k)+v(k).
 
 
 Here, $x(k)\in\mathbb{R}^2$ is the state, $u(k)\in\mathbb{R}$ is the input, and $y(k)\in\mathbb{R}$ is the measured output.  
-The term $v(k)$ denotes the strategy noise added to the measured output and is modeled as Gaussian white noise:
+The term $v(k)$ denotes the measurement noise and is modeled as Gaussian white noise:
 ```math
 \begin{equation*}
 v(k)\sim\mathcal{N}(0,10^{-4}).
