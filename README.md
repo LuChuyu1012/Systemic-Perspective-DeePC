@@ -37,16 +37,16 @@ All generated results, including figures and saved data files, can be found in t
 In the experiments, a total of six LTI systems are considered. This section presents one representative system as a benchmark case study.
 ```math
 \begin{equation*}
-x(t+1)=Ax(t)+Bu(t),\qquad y(t)=Cx(t)+v(t).
+x(k+1)=Ax(k)+Bu(t),\qquad y(k)=Cx(k)+v(k).
 \end{equation*}
 ```
 
 
-Here, $x(t)\in\mathbb{R}^2$ is the state, $u(t)\in\mathbb{R}$ is the input, and $y(t)\in\mathbb{R}$ is the measured output.  
-The term $v(t)$ denotes the measurement noise and is modeled as Gaussian white noise:
+Here, $x(k)\in\mathbb{R}^2$ is the state, $u(k)\in\mathbb{R}$ is the input, and $y(k)\in\mathbb{R}$ is the measured output.  
+The term $v(k)$ denotes the measurement noise and is modeled as Gaussian white noise:
 ```math
 \begin{equation*}
-v(t)\sim\mathcal{N}(0,10^{-4}).
+v(k)\sim\mathcal{N}(0,10^{-4}).
 \end{equation*}
 ```
 
@@ -74,14 +74,14 @@ C=
 To ensure a fair comparison across input-design cases, the measurement noise realization is kept identical in all experiments, and the input amplitude is adjusted such that the signal-to-noise ratio (SNR) is the same across cases. The measured output used to construct the Hankel matrix is
 
 ```math
-y(t)=y_0(t)+v(t),
+y(k)=y_0(k)+v(k),
 ```
-where $y_0(t)$ denotes the noise-free output. The SNR is defined as
+where $y_0(k)$ denotes the noise-free output. The SNR is defined as
 
 ```math
 \begin{equation*}
 \mathrm{SNR}_{\mathrm{dB}}
-=10\log_{10}\!\left(\frac{\sum_{t=1}^{T} \left|y_0(t)\right|^2}{\sum_{t=1}^{T} \left|v(t)\right|^2}\right).
+=10\log_{10}\!\left(\frac{\sum_{t=1}^{T} \left|y_0(k)\right|^2}{\sum_{t=1}^{T} \left|v(k)\right|^2}\right).
 \end{equation*}
 ```
 
