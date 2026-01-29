@@ -34,7 +34,7 @@ All generated results, including figures and saved data files, can be found in t
 
 ## Benchmark case study: LTI reference tracking with measurement noise
 
-In the experiments, a total of six discrete-time linear time-invariant (LTI) systems are considered. This section presents one representative system as a benchmark case study.
+In the experiments, a total of six LTI systems are considered. This section presents one representative system as a benchmark case study.
 ```math
 \begin{equation*}
 x(k+1)=Ax(k)+Bu(k),\qquad y(k)=Cx(k)+v(k).
