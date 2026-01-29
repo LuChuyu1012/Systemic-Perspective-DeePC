@@ -31,3 +31,53 @@ The experiments are organized into two categories:
 2. Noisy setting (with measurement noise)
 
 All generated results, including figures and saved data files, can be found in the corresponding results folders.
+
+## Benchmark case study: LTI reference tracking with strategy noise
+
+Consider the following discrete-time linear time-invariant (LTI) system with an additive measurement disturbance (strategy noise):
+\[
+\begin{aligned}
+x(k+1) &= A x(k) + B u(k),\\
+y(k)   &= C x(k) + v(k),
+\end{aligned}
+\]
+where \(x(k)\in\mathbb{R}^2\) is the state, \(u(k)\in\mathbb{R}\) is the input, and \(y(k)\in\mathbb{R}\) is the measured output.  
+The term \(v(k)\) denotes the strategy noise added to the measured output and is modeled as Gaussian white noise:
+\[
+v(k) \sim \mathcal{N}(0,\,10^{-4}).
+\]
+The system matrices used in this benchmark are:
+\[
+A=\begin{bmatrix}
+0.7326 & -0.0861\\
+0.1722 & 0.9909
+\end{bmatrix},\qquad
+B=\begin{bmatrix}
+0.0609\\
+0.0064
+\end{bmatrix},\qquad
+C=\begin{bmatrix}
+0 & 1.4142
+\end{bmatrix},\qquad
+D=0.
+\]
+
+### Input-design cases
+
+To study how the excitation content affects DeePC performance, four input-design cases are considered:
+
+- **Case 0 (white noise):** \(u(k)\) is generated as Gaussian white noise.
+- **Case 1–3 (multisine):** \(u(k)\) is generated as a periodic multisine signal with identical phase construction across cases, but with different excitation bands.
+
+The spectra of the four inputs are reported below to highlight the excited frequency components.
+
+*(Insert your spectral plots here, e.g., `figures/spectrum_case0.png` … `figures/spectrum_case3.png`.)*
+
+### Reference tracking visualization
+
+DeePC is then executed using the collected input–output data for reference tracking. Performance is evaluated using metrics such as RMSE and convergence time, and the results (figures and saved data) are provided in this repository.
+
+The following GIF showcases the reference tracking performance achieved by the DeePC formulation under the above four input-design cases.
+
+*(Insert your GIF here, e.g., `figures/tracking.gif`.)*
+
