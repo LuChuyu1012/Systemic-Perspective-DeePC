@@ -61,6 +61,7 @@ D=0.
 $$
 
 
+
 ### Input-design cases
 
 To study how the excitation content affects DeePC performance, four input-design cases are considered:
