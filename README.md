@@ -75,11 +75,15 @@ To ensure a fair comparison across input-design cases, the measurement noise rea
 
 ```math
 y(k)=y_0(k)+v(k),
+```
 where $y_0(k)$ denotes the noise-free output. The SNR is defined as
-\begin{equation}
+
+```math
+\begin{equation*}
 \mathrm{SNR}_{\mathrm{dB}}
 =10\log_{10}\!\left(\frac{\sum_{k=1}^{T} \left|y_0(k)\right|^2}{\sum_{k=1}^{T} \left|v(k)\right|^2}\right).
-\end{equation}
+\end{equation*}
+```
 
 ### Input-design cases
 
