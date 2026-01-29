@@ -35,30 +35,48 @@ All generated results, including figures and saved data files, can be found in t
 ## Benchmark case study: LTI reference tracking with measurement noise
 
 This system is described by the following discrete-time state-space model:
-$$
+```math
+\begin{equation*}
 x(k+1)=Ax(k)+Bu(k),\qquad y(k)=Cx(k)+v(k).
-$$
+\end{equation*}
+```
+
+```math
+\begin{equation*}
+x(k)\in\mathbb{R}^{2},\qquad u(k)\in\mathbb{R},\qquad y(k)\in\mathbb{R}.
+\end{equation*}
+```
+
 Here, $x(k)\in\mathbb{R}^2$ is the state, $u(k)\in\mathbb{R}$ is the input, and $y(k)\in\mathbb{R}$ is the measured output.  
 The term $v(k)$ denotes the strategy noise added to the measured output and is modeled as Gaussian white noise:
-$$
+```math
+\begin{equation*}
 v(k)\sim\mathcal{N}(0,10^{-4}).
-$$
+\end{equation*}
+```
+
 
 The system matrices used in this benchmark are:
-$$
-A=\begin{bmatrix}
+```math
+\begin{equation*}
+A=
+\begin{bmatrix}
 0.7326 & -0.0861\\
 0.1722 & 0.9909
 \end{bmatrix},\qquad
-B=\begin{bmatrix}
+B=
+\begin{bmatrix}
 0.0609\\
 0.0064
 \end{bmatrix},\qquad
-C=\begin{bmatrix}
+C=
+\begin{bmatrix}
 0 & 1.4142
 \end{bmatrix},\qquad
 D=0.
-$$
+\end{equation*}
+```
+
 
 
 
