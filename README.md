@@ -32,7 +32,7 @@ The experiments are organized into two categories:
 
 All generated results, including figures and saved data files, can be found in the corresponding results folders.
 
-## Benchmark case study: LTI reference tracking with strategy noise
+## Benchmark case study: LTI reference tracking with measurement noise
 
 Consider the following discrete-time linear time-invariant (LTI) system with an additive measurement disturbance (strategy noise):
 \[
