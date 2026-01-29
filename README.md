@@ -46,7 +46,7 @@ Here, $x(t)\in\mathbb{R}^2$ is the state, $u(t)\in\mathbb{R}$ is the input, and 
 The term $v(t)$ denotes the measurement noise and is modeled as Gaussian white noise:
 ```math
 \begin{equation*}
-v(k)\sim\mathcal{N}(0,10^{-4}).
+v(t)\sim\mathcal{N}(0,10^{-4}).
 \end{equation*}
 ```
 
