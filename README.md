@@ -34,7 +34,7 @@ All generated results, including figures and saved data files, can be found in t
 
 ## Benchmark case study: LTI reference tracking with measurement noise
 
-This system is described by the following discrete-time state-space model:
+In the experiments, a total of six discrete-time linear time-invariant (LTI) systems are considered. This section presents one representative system as a benchmark case study.
 ```math
 \begin{equation*}
 x(k+1)=Ax(k)+Bu(k),\qquad y(k)=Cx(k)+v(k).
@@ -67,8 +67,7 @@ B=
 C=
 \begin{bmatrix}
 0 & 1.4142
-\end{bmatrix},\qquad
-D=0.
+\end{bmatrix}.
 \end{equation*}
 ```
 
