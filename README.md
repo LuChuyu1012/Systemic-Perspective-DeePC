@@ -71,7 +71,6 @@ To study how the excitation content affects DeePC performance, four input-design
 
 The spectra of the four inputs are reported below to highlight the excited frequency components.
 
-*(Insert your spectral plots here, e.g., `figures/spectrum_case0.png` … `figures/spectrum_case3.png`.)*
 
 ### Reference tracking visualization
 
@@ -79,5 +78,5 @@ DeePC is then executed using the collected input–output data for reference tra
 
 The following GIF showcases the reference tracking performance achieved by the DeePC formulation under the above four input-design cases.
 
-*(Insert your GIF here, e.g., `figures/tracking.gif`.)*
+
 
