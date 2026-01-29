@@ -74,8 +74,6 @@ The spectra of the four inputs are reported below to highlight the excited frequ
 
 ### Reference tracking visualization
 
-DeePC is then executed using the collected input–output data for reference tracking. Performance is evaluated using metrics such as RMSE and convergence time, and the results (figures and saved data) are provided in this repository.
-
 The following GIF showcases the reference tracking performance achieved by the DeePC formulation under the above four input-design cases.
 
 
