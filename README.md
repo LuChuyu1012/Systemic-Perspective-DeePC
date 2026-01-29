@@ -35,32 +35,28 @@ All generated results, including figures and saved data files, can be found in t
 ## Benchmark case study: LTI reference tracking with measurement noise
 
 Consider the following discrete-time linear time-invariant (LTI) system with an additive measurement disturbance:
-\[
-\begin{aligned}
-x(k+1) &= A x(k) + B u(k),\\
-y(k)   &= C x(k) + v(k),
-\end{aligned}
-\]
-where \(x(k)\in\mathbb{R}^2\) is the state, \(u(k)\in\mathbb{R}\) is the input, and \(y(k)\in\mathbb{R}\) is the measured output.  
-The term \(v(k)\) denotes the strategy noise added to the measured output and is modeled as Gaussian white noise:
-\[
-v(k) \sim \mathcal{N}(0,\,10^{-4}).
-\]
+
+- State update:  **x(k+1) = A x(k) + B u(k)**
+- Output equation: **y(k) = C x(k) + v(k)**
+
+where **x(k) ∈ R^2** is the state, **u(k) ∈ R** is the input, and **y(k) ∈ R** is the measured output.  
+The term **v(k)** denotes the strategy noise added to the measured output and is modeled as Gaussian white noise:
+
+- **v(k) ~ N(0, 1e-4)**
+
 The system matrices used in this benchmark are:
-\[
-A=\begin{bmatrix}
-0.7326 & -0.0861\\
-0.1722 & 0.9909
-\end{bmatrix},\qquad
-B=\begin{bmatrix}
-0.0609\\
-0.0064
-\end{bmatrix},\qquad
-C=\begin{bmatrix}
-0 & 1.4142
-\end{bmatrix},\qquad
-D=0.
-\]
+
+```text
+A = [ 0.7326  -0.0861
+      0.1722   0.9909 ]
+
+B = [ 0.0609
+      0.0064 ]
+
+C = [ 0  1.4142 ]
+
+D = 0
+
 
 ### Input-design cases
 
