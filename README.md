@@ -71,7 +71,7 @@ C=
 \end{equation*}
 ```
 
-To ensure a fair comparison across input-design cases, the measurement noise realization is kept identical in all experiments, and the input amplitude is adjusted such that the signal-to-noise ratio (SNR) is the same across cases. The measured output used to construct the Hankel matrix is
+To ensure a fair comparison across input-design cases, the measurement noise realization is kept identical in all experiments, and the input amplitude is adjusted such that the signal-to-noise ratio (SNR) is 20dB across cases. The measured output used to construct the Hankel matrix is
 
 ```math
 y(t)=y_0(t)+v(t),
