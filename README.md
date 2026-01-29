@@ -37,7 +37,7 @@ All generated results, including figures and saved data files, can be found in t
 In the experiments, a total of six LTI systems are considered. This section presents one representative system as a benchmark case study.
 ```math
 \begin{equation*}
-x(k+1)=Ax(k)+Bu(t),\qquad y(k)=Cx(k)+v(k).
+x(k+1)=Ax(k)+Bu(k),\qquad y(k)=Cx(k)+v(k).
 \end{equation*}
 ```
 
