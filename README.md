@@ -94,12 +94,14 @@ To study how the excitation content affects DeePC performance, four input-design
 
 The spectra of the four inputs are reported below to highlight the excited frequency components.
 <p align="center">
-  <img src="imgs/input_spectrum_cases_0_1_2_3.png" width="60%" alt='A two-blocks Hankel data structure'>
+  <img src="imgs/experiments with noise/input_spectrum_cases_0_1_2_3.png" width="60%" alt='A two-blocks Hankel data structure'>
 </p>
 
 ### Reference tracking visualization
 
 The following GIF showcases the reference tracking performance achieved by the DeePC formulation under the above four input-design cases.
 
-
+<p align="center">
+  <img src="imgs/experiments with noise/Anim2x2_sys01_ft02_snr20dB_step1_delay0.50s.gif" width="60%" alt='A two-blocks Hankel data structure'>
+</p> 
 
