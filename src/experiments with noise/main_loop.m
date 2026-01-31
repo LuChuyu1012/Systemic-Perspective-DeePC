@@ -24,10 +24,10 @@ SNRdB_target = 30;        % desired SNR in dB (based on clean output vs noise)
 rng(10);
 noise = sigma_e * randn(1, T);   % FIXED noise sequence + FIXED scale
 
-for gidx = 0:3
+for gidx = 3:3
     lambda_g_curr = lambda_g * 10^(gidx-1);
 
-    for sysnum = 1:6
+    for sysnum = 6:6
 
         if ismember(sysnum, [1, 2, 3])
             dim = 2;
@@ -36,9 +36,9 @@ for gidx = 0:3
         end
         x0 = zeros(dim,1);
 
-        for si = 0:3
+        for si = 1:3
 
-
+            % ======= NEW: filename tag uses SNR instead of sigma_e =======
             snr_tag  = sprintf('snr%02ddB', round(SNRdB_target));
             fname_big = sprintf('s%02d_r%02d_case%02d_g%d_%s.mat', ...
                                 sysnum, f_target, si, gidx, snr_tag);

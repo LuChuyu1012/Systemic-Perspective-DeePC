@@ -5,15 +5,12 @@ f_target     = 2;
 SIs          = 2:3;
 nruns        = 20;
 Fs           = 100;
-eps_tol      = 0.1;
 g_list       = 0:3;
 
 SNRdB_target = 20;
 extra_suffix = sprintf('_snr%02ddB', round(SNRdB_target));
 
 lambda_list = [0.001 0.01 0.1 1];
-
-y_fields = {'y_seq_opt','y_seq','y','y_out'};
 
 plt_set.y_font_dim     = 16;
 plt_set.x_font_dim     = 16;
@@ -38,20 +35,20 @@ if ~exist(outdir,'dir'); mkdir(outdir); end
 
 suffix_clean = regexprep(extra_suffix, '^_+', '');
 suffix_clean = regexprep(suffix_clean, '[^A-Za-z0-9\.\-]+', '_');
-eps_tag = strrep(sprintf('%.2g', eps_tol), '.', 'p');
 
 num_cases = numel(SIs);
 best_g    = NaN(1, num_cases);
-best_mean = NaN(1, num_cases);
-best_conv = NaN(1, num_cases);
+best_bar  = NaN(1, num_cases);
 
-fprintf('==== Search best g per case (min ConvTime, eps=%g; fallback min mean RMSE) ====\n', eps_tol);
+fprintf('==== Pick best g per case (ONLY min RMSEbar(mean(y_seq_opt) vs ref)) ====\n');
 
+% =====================================================================
+% 1) For EACH case: pick its own best g by RMSEbar
+% =====================================================================
 for ci = 1:num_cases
     si = SIs(ci);
 
-    mean_by_g = inf(1, numel(g_list));
-    conv_by_g = NaN(1, numel(g_list));
+    bar_by_g = NaN(1, numel(g_list));
 
     for gg = 1:numel(g_list)
         g = g_list(gg);
@@ -63,9 +60,8 @@ for ci = 1:num_cases
             continue;
         end
 
-        RMS_tmp = NaN(nruns,1);
-        Y_all   = cell(1, nruns);
-        lens    = zeros(1, nruns);
+        Ysopt   = cell(1, nruns);
+        lensOpt = NaN(1, nruns);
 
         for runi = 1:nruns
             varname = sprintf('s%02d_r%02d_case%02d_run%02d', sysnum, f_target, si, runi);
@@ -74,77 +70,43 @@ for ci = 1:num_cases
                 if ~isfield(S, varname), continue; end
                 rec = S.(varname);
 
-                if isfield(rec, 'rms_error') && ~isempty(rec.rms_error)
-                    RMS_tmp(runi) = rec.rms_error;
+                if isfield(rec, 'y_seq_opt') && ~isempty(rec.y_seq_opt)
+                    yy = rec.y_seq_opt(:);
+                    Ysopt{runi}   = yy;
+                    lensOpt(runi) = numel(yy);
                 end
-
-                y = [];
-                for fn = y_fields
-                    if isfield(rec, fn{1}) && ~isempty(rec.(fn{1}))
-                        y = rec.(fn{1}); break;
-                    end
-                end
-                if isempty(y), continue; end
-
-                y = squeeze(y);
-                y = y(:,:);
-                Y_all{runi} = y;
-                lens(runi)  = size(y,1);
             catch
             end
         end
 
-        v = RMS_tmp(~isnan(RMS_tmp));
-        if ~isempty(v)
-            mean_by_g(gg) = mean(v);
-        end
-
-        conv_by_g(gg) = local_convtime_maxoverruns(Y_all, lens, Fs, f_target, eps_tol);
+        bar_by_g(gg) = local_rmsebar_meantraj_vs_ref(Ysopt, lensOpt, Fs, f_target);
     end
 
-    finite_conv = isfinite(conv_by_g);
-    if any(finite_conv)
-        conv_candidates = conv_by_g;
-        conv_candidates(~finite_conv) = inf;
-
-        minConv = min(conv_candidates);
-        idxs = find(conv_candidates == minConv);
-
-        if numel(idxs) > 1
-            [~, k2] = min(mean_by_g(idxs));
-            idx_min = idxs(k2);
-        else
-            idx_min = idxs(1);
-        end
-
-        best_g(ci)    = g_list(idx_min);
-        best_mean(ci) = mean_by_g(idx_min);
-        best_conv(ci) = conv_by_g(idx_min);
-
-        lam = lambda_list(best_g(ci)+1);
-        fprintf('case=%d | best g=%d (λg=%.3g) | ConvTime=%s | mean(RMSE)=%.4g\n', ...
-            si, best_g(ci), lam, num2str(best_conv(ci)), best_mean(ci));
-    else
-        [mval, idx_min] = min(mean_by_g);
-        if isfinite(mval)
-            best_g(ci)    = g_list(idx_min);
-            best_mean(ci) = mval;
-            best_conv(ci) = NaN;
-
-            lam = lambda_list(best_g(ci)+1);
-            fprintf('case=%d | ConvTime all NaN -> fallback | best g=%d (λg=%.3g) | mean(RMSE)=%.4g\n', ...
-                si, best_g(ci), lam, best_mean(ci));
-        else
-            fprintf('case=%d | no valid data\n', si);
-        end
+    finite_bar = isfinite(bar_by_g);
+    if ~any(finite_bar)
+        fprintf('case=%d | no valid RMSEbar -> skip saving\n', si);
+        continue;
     end
+
+    cand = bar_by_g;
+    cand(~finite_bar) = inf;
+
+    [minBar, idx_min] = min(cand);
+
+    best_g(ci)   = g_list(idx_min);
+    best_bar(ci) = minBar;
+
+    lam = lambda_list(best_g(ci)+1);
+    fprintf('case=%d | best g=%d (λg=%.3g) | RMSEbar=%s\n', ...
+        si, best_g(ci), lam, num2str(best_bar(ci)));
 end
+
 
 for ci = 1:num_cases
     si = SIs(ci);
     g  = best_g(ci);
 
-    if isnan(g)
+    if ~isfinite(g)
         warning('Skip: case=%d has no best g.', si);
         continue;
     end
@@ -231,58 +193,39 @@ for ci = 1:num_cases
     fig.PaperPositionMode = 'auto';
     drawnow;
 
-    base = sprintf('TrajOverlay_sys%02d_ft%02d_case%02d_g%d_lam%.3g_eps%s_%s', ...
-                   sysnum, f_target, si, g, lam, eps_tag, suffix_clean);
+    % ======= SAVE: ONLY this best-g figure for this case =======
+    base = sprintf('TrajOverlay_sys%02d_ft%02d_case%02d_bestg%d_lam%.3g_%s', ...
+                   sysnum, f_target, si, g, lam, suffix_clean);
     base = strrep(base, '.', 'p');
-
-    ws = warning; warning('off','all');
-    cleanupObj = onCleanup(@() warning(ws)); 
 
     savefig(fig, fullfile(outdir,[base,'.fig']));
     exportgraphics(fig, fullfile(outdir,[base,'.png']), 'Resolution',300, 'BackgroundColor','white');
 
-    fprintf('Saved FIG: %s\n', fullfile(outdir,[base,'.fig']));
-    fprintf('Saved PNG: %s\n', fullfile(outdir,[base,'.png']));
+    fprintf('Saved (case=%d best g=%d): %s\n', si, g, base);
 end
 
-function Tconv = local_convtime_maxoverruns(Y_all, lens, Fs, f_target, eps_tol)
-    Tconv = NaN;
+% ========================= FUNCTIONS =========================
+function rmse_bar = local_rmsebar_meantraj_vs_ref(Ysopt, lensOpt, Fs, f_target)
+    rmse_bar = NaN;
 
-    good = find(~cellfun(@isempty, Y_all) & lens>0);
+    good = find(~cellfun(@isempty, Ysopt) & isfinite(lensOpt) & lensOpt>0);
     if isempty(good), return; end
 
-    Nmin = min(lens(good));
-    p    = size(Y_all{good(1)}, 2);
+    Nmin = min(lensOpt(good));
+
+    Ymat = NaN(Nmin, numel(good));
+    for j = 1:numel(good)
+        y = Ysopt{good(j)};
+        Ymat(:,j) = y(1:Nmin);
+    end
+
+    ybar = mean(Ymat, 2, 'omitnan');
 
     n = (0:Nmin-1).';
     r = sin(2*pi*f_target/Fs * n);
-    if p > 1
-        r = repmat(r, 1, p);
-    end
 
-    dmax = zeros(Nmin,1);
-    for k = 1:Nmin
-        dm = 0;
-        for idx = 1:numel(good)
-            y = Y_all{good(idx)}(1:Nmin,:);
-            diff = y(k,:) - r(k,:);
-            if p == 1
-                dij = abs(diff);
-            else
-                dij = norm(diff, 2);
-            end
-            dm = max(dm, dij);
-        end
-        dmax(k) = dm;
-    end
-
-    below   = (dmax <= eps_tol);
-    tail_ok = flipud(cummin(flipud(double(below)))) == 1;
-    n0      = find(tail_ok, 1, 'first');
-
-    if ~isempty(n0)
-        Tconv = (n0 - 1)/Fs;
-    end
+    diff = ybar - r;
+    rmse_bar = sqrt(mean(diff.^2, 'omitnan'));
 end
 
 function rgb = hex2rgb(h)
