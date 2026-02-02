@@ -92,7 +92,7 @@ To study how the excitation content affects DeePC performance, four input-design
 - **Case 0 (white noise):** $u(t)$ is generated as Gaussian white noise.
 - **Case 1–3 (multisine):** $u(t)$ is generated as a periodic multisine signal with identical phase construction across cases, but with different excitation bands.
 
-The spectra of the four inputs are reported below to highlight the excited frequency components.
+The spectra of the four inputs are reported below.
 <p align="center">
   <img src="imgs/experiments with noise/input_spectrum_cases_0_1_2_3.png" width="60%" alt='A two-blocks Hankel data structure'>
 </p>
