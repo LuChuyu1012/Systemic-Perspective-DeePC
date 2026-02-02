@@ -81,7 +81,9 @@ where $y_0(t)$ denotes the noise-free output. The SNR is defined as
 ```math
 \begin{equation*}
 \mathrm{SNR}_{\mathrm{dB}}
-=10\log_{10}\!\left(\frac{\sum_{t=1}^{T} \left|y_0(t)\right|^2}{\sum_{t=1}^{T} \left|v(t)\right|^2}\right).
+=20\log_{10}\!\left(
+\frac{\sqrt{\sum_{t=1}^{T} \left|y_0(t)\right|^2}}{\sqrt{\sum_{t=1}^{T} \left|v(t)\right|^2}}
+\right).
 \end{equation*}
 ```
 
