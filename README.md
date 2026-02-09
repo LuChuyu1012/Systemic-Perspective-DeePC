@@ -96,7 +96,7 @@ To study how the excitation content affects DeePC performance, four input-design
 
 The spectra of the four inputs are reported below.
 <p align="center">
-  <img src="imgs/experiments with noise/input_spectrum_scenarios_0_1_2_3.png" width="60%" alt='A two-blocks Hankel data structure'>
+  <img src="imgs/experiments with noise/input_spectrum_cases_0_1_2_3.png" width="60%" alt='A two-blocks Hankel data structure'>
 </p>
 
 ### Reference tracking visualization
