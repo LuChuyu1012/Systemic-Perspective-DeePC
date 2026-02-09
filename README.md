@@ -32,9 +32,9 @@ The experiments are organized into two categories:
 
 All generated results, including figures and saved data files, can be found in the corresponding results folders.
 
-## Benchmark case study: LTI reference tracking with measurement noise
+## Benchmark scenario study: LTI reference tracking with measurement noise
 
-In the experiments, a total of six LTI systems are considered. This section presents one representative system as a benchmark case study.
+In the experiments, six LTI systems are considered. This section presents one representative system as a benchmark scenario study.
 ```math
 \begin{equation*}
 x(t+1)=Ax(t)+Bu(t),\qquad y(t)=Cx(t)+v(t).
@@ -71,7 +71,7 @@ C=
 \end{equation*}
 ```
 
-To ensure a fair comparison across input-design cases, the measurement noise realization is kept identical in all experiments, and the input amplitude is adjusted such that the signal-to-noise ratio (SNR) is 20dB across cases. The measured output used to construct the Hankel matrix is
+To ensure a fair comparison across input-design scenarios, the measurement noise realization is kept identical in all experiments, and the input amplitude is adjusted such that the signal-to-noise ratio (SNR) is 20dB across scenarios. The measured output used to construct the Hankel matrix is
 
 ```math
 y(t)=y_0(t)+v(t),
@@ -81,25 +81,27 @@ where $y_0(t)$ denotes the noise-free output. The SNR is defined as
 ```math
 \begin{equation*}
 \mathrm{SNR}_{\mathrm{dB}}
-=10\log_{10}\!\left(\frac{\sum_{t=1}^{T} \left|y_0(t)\right|^2}{\sum_{t=1}^{T} \left|v(t)\right|^2}\right).
+=20\log_{10}\!\left(
+\frac{\sqrt{\sum_{t=1}^{T} \left|y_0(t)\right|^2}}{\sqrt{\sum_{t=1}^{T} \left|v(t)\right|^2}}
+\right).
 \end{equation*}
 ```
 
-### Input-design cases
+### Input-design scenarios
 
-To study how the excitation content affects DeePC performance, four input-design cases are considered:
+To study how the excitation content affects DeePC performance, four input-design scenarios are considered:
 
-- **Case 0 (white noise):** $u(t)$ is generated as Gaussian white noise.
-- **Case 1–3 (multisine):** $u(t)$ is generated as a periodic multisine signal with identical phase construction across cases, but with different excitation bands.
+- **WN (white noise):** $u(t)$ is generated as Gaussian white noise.
+- **IBW, IBN and OB (multisine):** $u(t)$ is generated as a periodic multisine signal with identical phase construction across scenarios, but with different excitation bands.
 
-The spectra of the four inputs are reported below to highlight the excited frequency components.
+The spectra of the four inputs are reported below.
 <p align="center">
   <img src="imgs/experiments with noise/input_spectrum_cases_0_1_2_3.png" width="60%" alt='A two-blocks Hankel data structure'>
 </p>
 
 ### Reference tracking visualization
 
-The following GIF showcases the reference tracking performance achieved by the DeePC formulation under the above four input-design cases.
+The following GIF showscenarios the reference tracking performance achieved by the DeePC formulation under the above four input-design scenarios. For each scenario, 20 Monte Carlo runs were conducted. All settings were kept identical across runs, except for the initial state. The DeePC outputs are then averaged across the 20 runs, and the resulting mean output trajectory is shown below.
 
 <p align="center">
   <img src="imgs/experiments with noise/Anim2x2_sys01_ft02_snr20dB_step1_delay0.50s.gif" width="60%" alt='A two-blocks Hankel data structure'>
