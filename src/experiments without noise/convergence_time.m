@@ -1,9 +1,9 @@
 clc; clear; close all;
 
 % ======= Select ONE system here =======
-sysnum    = 6;          % <<< change to 1..6
+sysnum    = 3;          % <<< change to 1..6
 f_target  = 2;
-SIs       = 0:3;
+SIs       = 7:9;
 nruns     = 20;
 Fs        = 100;
 
@@ -65,7 +65,6 @@ for sidx = 1:numel(SIs)
     Nmin = min(lens(good));
     ny   = size(Y_all{good(1)}, 2);
 
-    % ======= NEW: consensus range across runs (NO reference) =======
     % For each time k, compute range per output dim:
     %   range_j(k) = max_r y_r(k,j) - min_r y_r(k,j)
     % Then aggregate into scalar:
@@ -82,7 +81,6 @@ for sidx = 1:numel(SIs)
         range_t(k) = max(range_dim);                   % scalar
     end
 
-    % optional window check (same style as your original)
     if win_chk > 1
         rchk = movmax(range_t, [win_chk-1, 0], 'Endpoints','shrink');
     else
@@ -101,7 +99,6 @@ for sidx = 1:numel(SIs)
     end
 end
 
-% ======= Output only (no plot) =======
 fprintf('\n=== Consensus time by range (sys=%d, f=%g Hz, tol=%g) ===\n', ...
     sysnum, f_target, consensus_tol_abs);
 

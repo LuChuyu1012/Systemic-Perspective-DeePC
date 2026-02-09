@@ -1,8 +1,8 @@
 clc; clear; close all;
 
-sysnum   = 1;
+sysnum   = 6;
 f_target = 2;
-SIs      = 4:11;
+SIs      = 0:3;
 nruns    = 20;
 
 RMS     = NaN(numel(SIs), nruns);
@@ -75,7 +75,9 @@ ax.FontSize  = plt_set.fontsize;
 ax.LineWidth = 1.0;
 
 xlabel('');
-ylab = ylabel('RMSE_{y}');
+
+% ======= Y label (UPDATED) =======
+ylab = ylabel('$\bigl\{\mathrm{RMSE}_y^{j}\bigr\}_{j=1}^{20}$', 'Interpreter', 'latex');
 set(ylab, 'FontName', plt_set.fontname, 'FontSize', plt_set.y_font_dim);
 
 grid on;
@@ -127,6 +129,10 @@ for k = 1:ncase
         set(hOut(kk), 'MarkerEdgeColor', use_rgb(k,:), 'MarkerFaceColor', use_rgb(k,:));
     end
 end
+
+% ======= X tick labels (UPDATED) =======
+set(ax, 'TickLabelInterpreter', 'latex');
+xticklabels({'$\mathbf{WN}$', '$\mathbf{IBW}$', '$\mathbf{IBN}$', '$\mathbf{OB}$'});
 
 set(ax,'LooseInset', max(get(ax,'TightInset'), 0.02));
 fig.PaperPositionMode = 'auto';
