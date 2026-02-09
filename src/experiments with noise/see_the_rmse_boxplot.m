@@ -9,7 +9,7 @@ nruns    = 20;
 Fs     = 100;
 g_list = 0:3;
 
-SNRdB_target = 20;
+SNRdB_target = 30;
 extra_suffix = sprintf('_snr%02ddB', round(SNRdB_target));
 
 lambda_list = [0.001 0.01 0.1 1];
@@ -93,12 +93,20 @@ end
 
 % ======= 2) pack data for boxplot =======
 Data   = NaN(nruns, num_cases);
+
+labels_map = {'$\mathbf{WN}$', '$\mathbf{IBW}$', '$\mathbf{IBN}$', '$\mathbf{OB}$'};
 labels = cell(1, num_cases);
 
 for c = 1:num_cases
     if isempty(best_RMS_cols{c}), continue; end
     Data(:, c) = best_RMS_cols{c}(:);
-    labels{c}  = sprintf('case=%d', SIs(c));
+
+    si = SIs(c);
+    if si >= 0 && si <= 3
+        labels{c} = labels_map{si+1};
+    else
+        labels{c} = sprintf('case=%d', si);
+    end
 end
 
 % ======= Plot style (keep your original) =======
@@ -131,7 +139,8 @@ ax.FontSize  = plt_set.fontsize;
 ax.LineWidth = 1.0;
 
 xlabel('');
-ylab = ylabel('RMSE_{y}');
+
+ylab = ylabel('$\bigl\{\mathrm{RMSE}_y^{j}\bigr\}_{j=1}^{20}$', 'Interpreter', 'latex');
 set(ylab, 'FontName', plt_set.fontname, 'FontSize', plt_set.y_font_dim);
 
 grid on;
@@ -188,6 +197,9 @@ set(ax,'LooseInset', max(get(ax,'TightInset'), 0.02));
 fig.PaperPositionMode = 'auto';
 drawnow;
 
+% --- Make x tick labels bold (TeX interpreter needed for \textbf) ---
+set(ax, 'TickLabelInterpreter', 'latex');
+
 % ======= Save =======
 outdir = fullfile(pwd, 'figures');
 if ~exist(outdir,'dir'); mkdir(outdir); end
@@ -219,6 +231,7 @@ for c = 1:num_cases
 end
 
 %% ========================= FUNCTIONS =========================
+
 function rmse_bar = local_rmsebar_meantraj_vs_ref(Ysopt, lensOpt, Fs, f_target)
     % RMSEbar = RMSE( mean(y_seq_opt across runs) - reference )
 
@@ -256,3 +269,4 @@ function rgb = hex2rgb(h)
     b = hex2dec(h(5:6));
     rgb = [r g b] / 255;
 end
+
