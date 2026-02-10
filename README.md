@@ -71,21 +71,7 @@ C=
 \end{equation*}
 ```
 
-To ensure a fair comparison across input-design scenarios, the measurement noise realization is kept identical in all experiments, and the input amplitude is adjusted such that the signal-to-noise ratio (SNR) is 20dB across scenarios. The measured output used to construct the Hankel matrix is
 
-```math
-y(t)=y_0(t)+v(t),
-```
-where $y_0(t)$ denotes the noise-free output. The SNR is defined as
-
-```math
-\begin{equation*}
-\mathrm{SNR}_{\mathrm{dB}}
-=20\log_{10}\!\left(
-\frac{\sqrt{\sum_{t=1}^{T} \left|y_0(t)\right|^2}}{\sqrt{\sum_{t=1}^{T} \left|v(t)\right|^2}}
-\right).
-\end{equation*}
-```
 
 ### Input-design scenarios
 
