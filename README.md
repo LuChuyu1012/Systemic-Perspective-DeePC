@@ -101,7 +101,7 @@ The spectra of the four inputs are reported below.
 
 ### Reference tracking visualization
 
-The following GIF showscenarios the reference tracking performance achieved by the DeePC formulation under the above four input-design scenarios. For each scenario, 20 Monte Carlo simulations were conducted. All settings were kept identical across simulations, except for the initial state. The DeePC outputs are then averaged across the 20 simulations, and the resulting mean output trajectory is shown below.
+The following GIF shows the reference tracking performance achieved by the DeePC formulation under the above four input-design scenarios. For each scenario, 20 Monte Carlo simulations were conducted. All settings were kept identical across simulations, except for the initial state. The DeePC outputs are then averaged across the 20 simulations, and the resulting mean output trajectory is shown below.
 
 <p align="center">
   <img src="imgs/experiments with noise/Anim2x2_sys01_ft02_snr20dB_step1_delay0.50s.gif" width="60%" alt='A two-blocks Hankel data structure'>
