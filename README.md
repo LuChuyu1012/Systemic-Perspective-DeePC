@@ -1,7 +1,7 @@
 [![MATLAB R2023a](https://img.shields.io/badge/MATLAB-R2023a-green)](https://nl.mathworks.com/products/new_products/release2023a.html)
 
 
-# A Systemic Perspective on Input Design for Data-Driven Predictive Control
+# A Systemic Perspective on Input Design for Data-Enabled Predictive Control
 Reference MATLAB implementation accompanying "A Systemic Perspective on Input Design for Data-Driven Predictive Control", providing scripts for experiment generation, DeePC trajectory tracking, and result visualization.
 ## Prerequisites
 
