@@ -17,7 +17,12 @@ TT = 100;        % The trajectory tracking experiment used 100 sampling points.
 Q = 100;
 R = 1;
 
-for sysnum = 1:6
+data_dir = fullfile(pwd, 'data');
+if ~exist(data_dir, 'dir')
+    mkdir(data_dir);
+end
+
+for sysnum = 1:5
 
     if ismember(sysnum, [1, 2, 3])
         dim = 2;
@@ -29,9 +34,11 @@ for sysnum = 1:6
     for si = 0:3
 
         fname_big = sprintf('s%02d_r%02d_case%02d.mat', sysnum, f_target, si);
+        fname_big = fullfile(data_dir, fname_big);
+
         big = struct();
 
-        for i = 1:20
+        for i = 1:50
             rng(1);
 
             % ======= (only used by multisine) =======
@@ -54,7 +61,6 @@ for sysnum = 1:6
                         u_seq = u_seq + A_j * sin( 2*pi*j*(f0/fs)*k + phi_j );
                     end
 
-
                 case 2
                     Jmax = 36;               
                     u_seq = zeros(size(k));
@@ -64,7 +70,6 @@ for sysnum = 1:6
                         A_j   = 1;                      
                         u_seq = u_seq + A_j * sin( 2*pi*j*(f0/fs)*k + phi_j );
                     end
-
 
                 case 3
                     % 20 Hz -> j_min = 20 / 0.5 = 40
@@ -82,14 +87,6 @@ for sysnum = 1:6
                         u_seq = u_seq + A_j * sin( 2*pi*j*(f0/fs)*k + phi_j );
                     end
 
-
-
-
-
-        
-
-
-
                 otherwise
                     error('unknown si = %d', si);
             end
@@ -101,11 +98,7 @@ for sysnum = 1:6
 
             desired_trajectory = sin( f_target * 2*pi / fs * (0:(T-1)) );
 
-            [U_p, U_f, Y_p, Y_f] = construct_Hankel(u_seq_cut, y_seq_cut, T_ini, N);
-
-            PE_rank          = rank([U_p; U_f]);
-            condition_number = cond([U_p; U_f; Y_p; Y_f]);
-            disp(rank([U_p; U_f;Y_p; Y_f]));
+            [U_p, U_f, Y_p, Y_f] = construct_Hankel(u_seq_cut, y_seq_cut, T_ini, N,dim);
 
             % ---------- DeePC ----------
             tic;
@@ -122,7 +115,6 @@ for sysnum = 1:6
 
             varname = sprintf('s%02d_r%02d_case%02d_run%02d', sysnum, f_target, si, i);
             big.(varname) = struct( ...
-                'PE_rank',       PE_rank, ...
                 'rms_error',     rms_error, ...
                 'error',         error(:), ...
                 'y_seq_opt',     y_seq_opt(:), ...
@@ -130,11 +122,11 @@ for sysnum = 1:6
                 'elapsed_time',  elapsed_time ...
             );
 
-        end % for i = 1:20
+        end % for i = 1:50
 
         save(fname_big, '-struct', 'big');
         fprintf('Saved: %s\n', fname_big);
 
     end % for si = 0:3
 
-end % for sysnum = 1:6
+end % for sysnum = 1:5

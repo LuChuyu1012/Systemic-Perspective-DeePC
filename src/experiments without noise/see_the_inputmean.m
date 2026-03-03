@@ -1,15 +1,18 @@
 clc; clear; close all;
 
-sysnum   = 6;
+sysnum   = 5;
 f_target = 2;
 SIs      = 0:3;
-nruns    = 20;
+nruns    = 50;
 Fs       = 100;
+
+eps_track  = 0.15;
+
+data_dir = fullfile(pwd, 'data');
 
 plt_set.y_font_dim     = 16;
 plt_set.x_font_dim     = 16;
 plt_set.thick          = 1.0;
-plt_set.ref_thick      = 0.9;
 plt_set.plot_unit      = 'centimeters';
 plt_set.fontname       = 'Times';
 plt_set.fontsize       = 12;
@@ -18,22 +21,49 @@ plt_set.plot_dim_y     = 6;
 
 case_hex_all = {'#007191', '#62c8d3', '#f47a00', '#d31f11'};
 use_cases = SIs(:).';
+
 use_rgb = zeros(numel(use_cases),3);
 for k = 1:numel(use_cases)
     si = use_cases(k);
     use_rgb(k,:) = hex2rgb(case_hex_all{si+1});
 end
 
-Umean_all = cell(1, numel(use_cases));
-N_all     = NaN(1, numel(use_cases));
-n_used    = zeros(1, numel(use_cases));
+y_fields = {'y_seq_opt','y_seq','y','y_out'};
 
-for kcase = 1:numel(use_cases)
-    si = use_cases(kcase);
+num_cases = numel(SIs);
 
-    fname_big = sprintf('s%02d_r%02d_case%02d.mat', sysnum, f_target, si);
-    if ~isfile(fname_big)
-        fprintf('Skip (file not found): %s\n', fname_big);
+best_Ttrk = NaN(1, num_cases);
+
+fprintf('==== Report Ttrk per case (noise-free) ====\n');
+
+for c = 1:num_cases
+    si = SIs(c);
+
+    fname_sel = fullfile(data_dir, sprintf('s%02d_r%02d_case%02d.mat', ...
+                        sysnum, f_target, si));
+    if ~isfile(fname_sel)
+        fprintf('case=%d | file not found -> skip\n', si);
+        continue;
+    end
+
+    [Y_all, lens] = local_load_Yall(fname_sel, sysnum, f_target, si, nruns, y_fields);
+
+    best_Ttrk(c) = local_convtime_track_to_ref(Y_all, lens, Fs, f_target, eps_track);
+
+    fprintf('case=%d | Ttrk=%s\n', si, fmt4f(best_Ttrk(c)));
+end
+
+Umean_all = cell(1, num_cases);
+N_all     = NaN(1, num_cases);
+n_used    = zeros(1, num_cases);
+
+for c = 1:num_cases
+    si = SIs(c);
+
+    fname_best = fullfile(data_dir, sprintf('s%02d_r%02d_case%02d.mat', ...
+                         sysnum, f_target, si));
+    if ~isfile(fname_best)
+        warning('File not found: %s (case=%d), skip.', fname_best, si);
         continue;
     end
 
@@ -43,69 +73,67 @@ for kcase = 1:numel(use_cases)
     for i = 1:nruns
         varname = sprintf('s%02d_r%02d_case%02d_run%02d', sysnum, f_target, si, i);
         try
-            S = load(fname_big, varname);
+            S = load(fname_best, varname);
             if ~isfield(S, varname), continue; end
             rec = S.(varname);
 
-            if ~isfield(rec, 'u_seq_opt') || isempty(rec.u_seq_opt), continue; end
-            u = rec.u_seq_opt(:);
-
-            Us{i}   = u;
-            lens(i) = numel(u);
+            if isfield(rec,'u_seq_opt') && ~isempty(rec.u_seq_opt)
+                u = rec.u_seq_opt(:);
+                Us{i}   = u;
+                lens(i) = numel(u);
+            end
         catch
         end
     end
 
-    good = find(~cellfun(@isempty, Us) & isfinite(lens) & lens > 0);
+    good = find(~cellfun(@isempty, Us) & isfinite(lens) & lens>0);
     if isempty(good)
-        fprintf('Skip (no valid u_seq_opt): case=%d\n', si);
+        warning('case=%d: no u_seq_opt found, skip.', si);
         continue;
     end
 
     N = min(lens(good));
-
     Umat = NaN(N, numel(good));
     for j = 1:numel(good)
         u = Us{good(j)};
         Umat(:,j) = u(1:N);
     end
 
-    Umean_all{kcase} = mean(Umat, 2, 'omitnan');
-    N_all(kcase)     = N;
-    n_used(kcase)    = numel(good);
+    Umean_all{c} = mean(Umat, 2, 'omitnan');
+    N_all(c)     = N;
+    n_used(c)    = numel(good);
 
-    fprintf('case=%d | used %d/%d runs | N=%d\n', si, n_used(kcase), nruns, N);
+    fprintf('case=%d | used %d/%d runs | N=%d\n', si, n_used(c), nruns, N);
 end
 
 valid = find(~cellfun(@isempty, Umean_all) & isfinite(N_all));
 if isempty(valid)
-    error('No valid data read for any case.');
+    error('No case produced mean u_seq_opt (check files/u_seq_opt field).');
 end
 
 Nmin = min(N_all(valid));
 t = (0:Nmin-1).';
 
-fig = figure('Color','w','Name','Mean input (all cases)','Visible','on');
+fig = figure('Color','w','Name','Mean input (all cases)');
 fig.Units = plt_set.plot_unit;
 fig.Position(3) = plt_set.plot_dim_x;
 fig.Position(4) = plt_set.plot_dim_y;
-
 fig.Renderer = 'opengl';
 
-ax = axes(fig); hold(ax,'on');
+ax = gca; hold(ax,'on');
 
-for kcase = 1:numel(use_cases)
-    if isempty(Umean_all{kcase}), continue; end
-    ubar = Umean_all{kcase}(1:Nmin);
-    plot(ax, t, ubar, '-', 'Color', use_rgb(kcase,:), 'LineWidth', plt_set.thick);
+for c = 1:num_cases
+    if isempty(Umean_all{c}), continue; end
+    u_plot = Umean_all{c}(1:Nmin);
+    plot(t, u_plot, '-', 'Color', use_rgb(c,:), 'LineWidth', plt_set.thick);
 end
 
 ax.FontName  = plt_set.fontname;
 ax.FontSize  = plt_set.fontsize;
 ax.LineWidth = 1.0;
 
-xlab = xlabel(ax, 't [samples]');
-ylab = ylabel(ax, 'u(t)');
+xlab = xlabel('t [samples]');
+ylab = ylabel(ax, '$\bar{u}(t)$', 'Interpreter','latex');
 set(xlab, 'FontName', plt_set.fontname, 'FontSize', plt_set.x_font_dim);
 set(ylab, 'FontName', plt_set.fontname, 'FontSize', plt_set.y_font_dim);
 
@@ -113,25 +141,104 @@ grid(ax,'on');
 ax.XGrid = 'off';
 ax.YGrid = 'on';
 ax.GridAlpha = 0.15;
-
-xlim(ax, [t(1) t(end)]);
+xlim([t(1) t(end)]);
 
 set(ax,'LooseInset', max(get(ax,'TightInset'), 0.02));
 fig.PaperPositionMode = 'auto';
-
 drawnow;
 
-outdir = fullfile(pwd, 'figures');
-if ~exist(outdir,'dir'); mkdir(outdir); end
+% ======= Save =======
+%     outdir = fullfile(pwd, 'figures');
+%     if ~exist(outdir,'dir'); mkdir(outdir); end
+% 
+%     base = sprintf('MeanTrajU_AllCases_sys%02d_ft%02d', ...
+%                    sysnum, f_target);
+% 
+%     savefig(fig, fullfile(outdir, [base, '.fig']));
+%     exportgraphics(fig, fullfile(outdir,[base,'.png']), 'Resolution',300, 'BackgroundColor','white');
+% 
+%     fprintf('FIG saved to: %s\n', fullfile(outdir,[base,'.fig']));
+%     fprintf('PNG saved to: %s\n', fullfile(outdir,[base,'.png']));
 
-base = sprintf('MeanTrajU_AllCases_sys%02d_ft%02d', sysnum, f_target);
+function [Y_all, lens] = local_load_Yall(fname_big, sysnum, f_target, si, nruns, y_fields)
+    Y_all = cell(1, nruns);
+    lens  = zeros(1, nruns);
 
-savefig(fig, fullfile(outdir, [base, '.fig']));
-exportgraphics(fig, fullfile(outdir, [base, '.png']), ...
-    'Resolution', 300, 'BackgroundColor', 'white');
+    for i = 1:nruns
+        varname = sprintf('s%02d_r%02d_case%02d_run%02d', sysnum, f_target, si, i);
+        try
+            S = load(fname_big, varname);
+            if ~isfield(S, varname), continue; end
+            rec = S.(varname);
 
-fprintf('FIG saved to: %s\n', fullfile(outdir,[base,'.fig']));
-fprintf('PNG saved to: %s\n', fullfile(outdir,[base,'.png']));
+            y = [];
+            for fn = y_fields
+                if isfield(rec, fn{1}) && ~isempty(rec.(fn{1}))
+                    y = rec.(fn{1});
+                    break;
+                end
+            end
+            if isempty(y), continue; end
+
+            y = squeeze(y);
+            y = y(:,:);
+
+            Y_all{i} = y;
+            lens(i)  = size(y,1);
+        catch
+        end
+    end
+end
+
+function Ttrk = local_convtime_track_to_ref(Y_all, lens, Fs, f_target, eps_track)
+    Ttrk = NaN;
+
+    good = find(~cellfun(@isempty, Y_all) & lens>0);
+    if isempty(good), return; end
+
+    Nmin = min(lens(good));
+    p    = size(Y_all{good(1)}, 2);
+
+    n = (0:Nmin-1).';
+    r = sin(2*pi*f_target/Fs * n);
+    if p > 1
+        r = repmat(r, 1, p);
+    end
+
+    e_max = zeros(Nmin,1);
+
+    for k = 1:Nmin
+        e_run = zeros(numel(good),1);
+        for idx = 1:numel(good)
+            y = Y_all{good(idx)}(1:Nmin, :);
+            ek = abs(y(k,:) - r(k,:));
+            e_run(idx) = max(ek);
+        end
+        e_max(k) = max(e_run);
+    end
+
+    below   = (e_max <= eps_track);
+    tail_ok = flipud(cummin(flipud(double(below)))) == 1;
+    k0      = find(tail_ok, 1, 'first');
+
+    if ~isempty(k0)
+        Ttrk = (k0 - 1)/Fs;
+    end
+end
+
+function s = fmt4f(x)
+    if isnan(x)
+        s = "NaN";
+    elseif isinf(x)
+        if x > 0
+            s = "Inf";
+        else
+            s = "-Inf";
+        end
+    else
+        s = sprintf('%.4f', x);
+    end
+end
 
 function rgb = hex2rgb(h)
     if isstring(h), h = char(h); end

@@ -1,4 +1,4 @@
-function [U_p, U_f, Y_p, Y_f] = construct_Hankel(u_data, y_data, T_ini, N)
+function [U_p, U_f, Y_p, Y_f] = construct_Hankel(u_data, y_data, T_ini, N,nx)
     % Construct past and future Hankel matrices with L = T_ini + N.
     % Inputs:
     %   u_data - Input sequence (1×T)
@@ -30,7 +30,7 @@ function [U_p, U_f, Y_p, Y_f] = construct_Hankel(u_data, y_data, T_ini, N)
     Y_p = H_y(1:T_ini, :);
     Y_f = H_y(T_ini+1:end, :);
 
-    M = H_u;
+    M = hankel(u_data(1:nx+L), u_data(L+nx:T));
 
     rM = rank(M);
     if rM < size(M,1)
