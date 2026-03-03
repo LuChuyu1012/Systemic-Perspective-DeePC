@@ -59,7 +59,7 @@ To eliminate the influence of different signal-to-noise ratios, an additional ex
 \frac{
 \sqrt{\sum_{t=0}^{T-1}\left|y_0(t)\right|^2}
 }{
-\sqrt{\sum_{t=0}^{T-1}\left|v(t)\right|^2}
+\sqrt{\sum_{t=0}^{T-1}\left|v_1(t)\right|^2}
 }
 \right).
 \end{equation*}
