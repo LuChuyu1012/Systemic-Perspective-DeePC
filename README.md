@@ -50,10 +50,10 @@ v_1(t)\sim\mathcal{N}(0,10^{-4}),\qquad
 v_2(t)\sim\mathcal{N}(0,2.5\times10^{-3}).
 \end{equation*}
 ```
-To eliminate the influence of different signal-to-noise ratios, an additional experiment is introduced. The measurement noise is fixed as $v_1(t)$, and the input amplitude is adjusted so that the signal-to-noise ratio is kept the same across all scenarios, namely $SNR_dB=30$. Here, $SNR_dB$ is defined as
+To eliminate the influence of different signal-to-noise ratios, an additional experiment is introduced. The measurement noise is fixed as $v_1(t)$, and the input amplitude is adjusted so that the signal-to-noise ratio is kept the same across all scenarios, namely $SNR_{dB}=30$. Here, $SNR_{dB}$ is defined as
 ```math
 \begin{equation*}
-\mathrm{SNR}_{\mathrm{dB}}
+SNR_{dB}
 =
 20\log_{10}\!\left(
 \frac{
