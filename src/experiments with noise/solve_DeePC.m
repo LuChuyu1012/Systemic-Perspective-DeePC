@@ -19,7 +19,6 @@ function [g_opt, y_pred,u_opt] = solve_DeePC(U_p, Y_p, U_f, Y_f, u_ini, y_ini, r
         variable u(n_uf,1)
         variable y(n_yf,1)
         variable g(n_g)
-        variable sigma_t(ny_p,1)   
 
         % Cost function initialization
         J = 0;
@@ -53,6 +52,7 @@ function [g_opt, y_pred,u_opt] = solve_DeePC(U_p, Y_p, U_f, Y_f, u_ini, y_ini, r
     fprintf(' %.6e', g_opt);
     fprintf(' ]\n');
 
+    fprintf('||g||_2 = %.6e\n', norm(g_opt, 2));
 
 
 

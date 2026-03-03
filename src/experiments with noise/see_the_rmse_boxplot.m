@@ -1,260 +1,321 @@
 clc; clear; close all;
 
-% ======= Configuration =======
-sysnum   = 6;
+% ===================== Settings =====================
+sys_list = 1:5;
 f_target = 2;
 SIs      = 0:3;
-nruns    = 20;
+nruns    = 50;
 
-Fs     = 100;
-g_list = 0:3;
+Fs = 100;
 
-SNRdB_target = 30;
-extra_suffix = sprintf('_snr%02ddB', round(SNRdB_target));
+g_list = [0 1 2 3 5];
 
-lambda_list = [0.001 0.01 0.1 1];
+suffix_list = {'_sigmae5e-02','_sigmae1e-02','_snr30dB'};
 
-num_cases     = numel(SIs);
-best_g        = NaN(1, num_cases);
-best_RMS_cols = cell(1, num_cases);
-best_RMSEbar  = NaN(1, num_cases);
+lambda_map = containers.Map( ...
+    {0,    1,    2,   3,   5}, ...
+    {0.001,0.01,0.1, 1,   100} );
 
-fprintf('==== Search best g per case (ONLY: minimum RMSEbar(mean(y_seq_opt) vs ref)) ====\n');
+y_fields = {'y_seq_opt','y_seq','y','y_out'};
+data_dir = fullfile(pwd, 'data');
 
-% ======= 1) pick best g =======
-for c = 1:num_cases
-    si = SIs(c);
+nsys  = numel(sys_list);
+ncase = numel(SIs);
 
-    rmsebar_by_g = NaN(1, numel(g_list));
-    rms_by_g     = cell(1, numel(g_list));
-
-    for gg = 1:numel(g_list)
-        g = g_list(gg);
-
-        fname_big = sprintf('s%02d_r%02d_case%02d_g%d%s.mat', ...
-                            sysnum, f_target, si, g, extra_suffix);
-
-        RMS_tmp = NaN(nruns, 1);
-
-        Ysopt   = cell(1, nruns);
-        lensOpt = NaN(1, nruns);
-
-        if ~isfile(fname_big)
-            rms_by_g{gg}     = RMS_tmp;
-            rmsebar_by_g(gg) = NaN;
-            continue;
-        end
-
-        for i = 1:nruns
-            varname = sprintf('s%02d_r%02d_case%02d_run%02d', sysnum, f_target, si, i);
-            try
-                S = load(fname_big, varname);
-                if ~isfield(S, varname), continue; end
-                rec = S.(varname);
-
-                % ----- RMSE data for boxplot -----
-                if isfield(rec, 'rms_error') && ~isempty(rec.rms_error)
-                    RMS_tmp(i) = mean(rec.rms_error(:));
-                end
-
-                % ----- y_seq_opt for RMSEbar selection -----
-                if isfield(rec, 'y_seq_opt') && ~isempty(rec.y_seq_opt)
-                    yy = rec.y_seq_opt(:);
-                    Ysopt{i}   = yy;
-                    lensOpt(i) = numel(yy);
-                end
-            catch
-            end
-        end
-
-        rms_by_g{gg}     = RMS_tmp;
-        rmsebar_by_g(gg) = local_rmsebar_meantraj_vs_ref(Ysopt, lensOpt, Fs, f_target);
-    end
-
-    finite_bar = isfinite(rmsebar_by_g);
-    if ~any(finite_bar)
-        fprintf('case=%d | no valid RMSEbar across g (skip)\n', si);
-        continue;
-    end
-
-    cand = rmsebar_by_g;
-    cand(~finite_bar) = inf;
-
-    [minBar, idx_min] = min(cand);
-    gstar = g_list(idx_min);
-
-    best_g(c)        = gstar;
-    best_RMS_cols{c} = rms_by_g{idx_min};
-    best_RMSEbar(c)  = minBar;
-
-    fprintf('case=%d | best g=%d (lambda=%.3g) | RMSEbar=%.6g\n', ...
-        si, gstar, lambda_list(gstar+1), minBar);
-end
-
-% ======= 2) pack data for boxplot =======
-Data   = NaN(nruns, num_cases);
-
-labels_map = {'$\mathbf{WN}$', '$\mathbf{IBW}$', '$\mathbf{IBN}$', '$\mathbf{OB}$'};
-labels = cell(1, num_cases);
-
-for c = 1:num_cases
-    if isempty(best_RMS_cols{c}), continue; end
-    Data(:, c) = best_RMS_cols{c}(:);
-
-    si = SIs(c);
-    if si >= 0 && si <= 3
-        labels{c} = labels_map{si+1};
-    else
-        labels{c} = sprintf('case=%d', si);
-    end
-end
-
-% ======= Plot style (keep your original) =======
-plt_set.y_font_dim     = 16;
-plt_set.x_font_dim     = 11;
-plt_set.thick          = 1.6;
+% ===================== Plot style =====================
 plt_set.plot_unit      = 'centimeters';
 plt_set.fontname       = 'Times';
-plt_set.fontsize       = 12;
-plt_set.plot_dim_x     = 8;
+
+plt_set.fontsize       = 8;
+plt_set.x_font_dim     = 8;
+plt_set.y_font_dim     = 10;
+
+plt_set.plot_dim_x     = 10;
 plt_set.plot_dim_y     = 6;
 
 case_hex = {'#007191', '#62c8d3', '#f47a00', '#d31f11'};
-use_rgb = zeros(num_cases,3);
-for k = 1:num_cases
+use_rgb = zeros(ncase,3);
+for k = 1:ncase
     use_rgb(k,:) = hex2rgb(case_hex{k});
 end
 
-fig = figure('Color','w','Name','RMSE boxplot (g picked by RMSEbar)');
-fig.Units = plt_set.plot_unit;
-fig.Position(3) = plt_set.plot_dim_x;
-fig.Position(4) = plt_set.plot_dim_y;
-set(fig,'Renderer','opengl');
+gap_sys   = 0.55;
+width_box = 0.32;
 
-boxplot(Data, 'Labels', labels, 'Symbol','k+');
-ax = gca;
+for mm = 1:numel(suffix_list)
 
-ax.FontName  = plt_set.fontname;
-ax.FontSize  = plt_set.fontsize;
-ax.LineWidth = 1.0;
+    extra_suffix = suffix_list{mm};
 
-xlabel('');
+    RMS = NaN(nsys, ncase, nruns);
 
-ylab = ylabel('$\bigl\{\mathrm{RMSE}_y^{j}\bigr\}_{j=1}^{20}$', 'Interpreter', 'latex');
-set(ylab, 'FontName', plt_set.fontname, 'FontSize', plt_set.y_font_dim);
+    best_g = NaN(nsys, ncase);
 
-grid on;
-ax.XGrid = 'off';
-ax.YGrid = 'on';
-ax.GridAlpha = 0.15;
+    fprintf('==== Best g per (system, case): minimize mean(rms_error) across runs ====\n');
 
-thick = plt_set.thick;
+    % ===================== Main loops =====================
+    for ss = 1:nsys
+        sysnum = sys_list(ss);
 
-hBox  = findobj(ax,'Tag','Box');
-hMed  = findobj(ax,'Tag','Median');
-hWhi  = findobj(ax,'Tag','Whisker');
-hOut  = findobj(ax,'Tag','Outliers');
-hCapU = findobj(ax,'Tag','Upper Adjacent Value');
-hCapL = findobj(ax,'Tag','Lower Adjacent Value');
+        for cc = 1:ncase
+            si = SIs(cc);
 
-if ~isempty(hBox),  set(hBox,  'LineWidth', thick); end
-if ~isempty(hMed),  set(hMed,  'LineWidth', thick); end
-if ~isempty(hWhi),  set(hWhi,  'LineWidth', thick); end
-if ~isempty(hOut),  set(hOut,  'LineWidth', 1.0);  end
-if ~isempty(hCapU), set(hCapU, 'LineWidth', thick); end
-if ~isempty(hCapL), set(hCapL, 'LineWidth', thick); end
+            mean_rms_by_g = NaN(1, numel(g_list));
 
-for k = 1:num_cases
-    kk = num_cases - k + 1;
+            for gg = 1:numel(g_list)
+                g = g_list(gg);
 
-    if numel(hBox) >= k, set(hBox(kk), 'Color', use_rgb(k,:)); end
-    if numel(hMed) >= k, set(hMed(kk), 'Color', use_rgb(k,:)); end
+                fname = fullfile(data_dir, sprintf('s%02d_r%02d_case%02d_g%d%s.mat', ...
+                                    sysnum, f_target, si, g, extra_suffix));
+                if ~isfile(fname)
+                    continue;
+                end
 
-    idxw = (2*(kk-1)+1):(2*(kk-1)+2);
-    if numel(hWhi) >= max(idxw)
-        set(hWhi(idxw), 'Color', use_rgb(k,:));
-    end
+                v = NaN(1, nruns);
+                for i = 1:nruns
+                    varname = sprintf('s%02d_r%02d_case%02d_run%02d', sysnum, f_target, si, i);
+                    try
+                        S = load(fname, varname);
+                        if ~isfield(S, varname), continue; end
+                        rec = S.(varname);
 
-    if ~isempty(hCapU)
-        idxc = (2*(kk-1)+1):(2*(kk-1)+2);
-        if numel(hCapU) >= max(idxc)
-            set(hCapU(idxc), 'Color', use_rgb(k,:));
+                        if isfield(rec, 'rms_error') && ~isempty(rec.rms_error)
+                            v(i) = mean(rec.rms_error(:));
+                        end
+                    catch
+                    end
+                end
+
+                vv = v(isfinite(v));
+                if isempty(vv)
+                    continue;
+                end
+
+                mean_rms_by_g(gg) = mean(vv);
+            end
+
+            finite_mean = isfinite(mean_rms_by_g);
+            if ~any(finite_mean)
+                fprintf('System %d case=%d | no valid rms_error across g -> skip\n', sysnum, si);
+                continue;
+            end
+
+            cand = mean_rms_by_g;
+            cand(~finite_mean) = inf;
+
+            minMean = min(cand);
+            idxs = find(cand == minMean);
+            idx_min = idxs(1);
+
+            gstar = g_list(idx_min);
+            best_g(ss, cc) = gstar;
+
+            if isKey(lambda_map, gstar)
+                lam = lambda_map(gstar);
+            else
+                lam = NaN;
+            end
+
+            fprintf('System %d case=%d | best g=%d (lambda=%.3g) | mean(rms_error)=%.6g | %s\n', ...
+                sysnum, si, gstar, lam, mean_rms_by_g(idx_min), extra_suffix);
+
+            fname_sel = fullfile(data_dir, sprintf('s%02d_r%02d_case%02d_g%d%s.mat', ...
+                                sysnum, f_target, si, gstar, extra_suffix));
+            if ~isfile(fname_sel)
+                continue;
+            end
+
+            for i = 1:nruns
+                varname = sprintf('s%02d_r%02d_case%02d_run%02d', sysnum, f_target, si, i);
+                try
+                    S = load(fname_sel, varname);
+                    if ~isfield(S, varname), continue; end
+                    rec = S.(varname);
+
+                    if isfield(rec, 'rms_error') && ~isempty(rec.rms_error)
+                        RMS(ss, cc, i) = mean(rec.rms_error(:));
+                    end
+                catch
+                end
+            end
         end
     end
-    if ~isempty(hCapL)
-        idxc2 = (2*(kk-1)+1):(2*(kk-1)+2);
-        if numel(hCapL) >= max(idxc2)
-            set(hCapL(idxc2), 'Color', use_rgb(k,:));
+
+    % ===================== build one long vector + positions grouped by system =====================
+    X = [];
+    pos = [];
+
+    for ss = 1:nsys
+        base = (ss-1)*(ncase + gap_sys);
+
+        for cc = 1:ncase
+            p = base + cc;
+
+            v = squeeze(RMS(ss, cc, :));
+            v = v(~isnan(v));
+            if isempty(v), continue; end
+
+            X   = [X; v];
+            pos = [pos; repmat(p, numel(v), 1)];
         end
     end
 
-    if numel(hOut) >= k
-        set(hOut(kk), 'MarkerEdgeColor', use_rgb(k,:), 'MarkerFaceColor', use_rgb(k,:));
+    pos_unique = unique(pos);
+    pos_unique = sort(pos_unique, 'ascend');
+
+    fig = figure('Color','w','Name','RMSE boxplots grouped by system (best g by mean(rms_error))');
+    fig.Units = plt_set.plot_unit;
+    fig.Position(3) = plt_set.plot_dim_x;
+    fig.Position(4) = plt_set.plot_dim_y;
+    fig.Renderer = 'opengl';
+
+    boxplot(X, pos, 'Positions', pos_unique, 'Widths', width_box, 'Symbol','k+');
+
+    ax = gca;
+    ax.FontName  = plt_set.fontname;
+    ax.FontSize  = plt_set.fontsize;
+    ax.LineWidth = 1.0;
+
+    xlabel('');
+
+    ylab = ylabel('$\mathrm{RMSE}_y^i$', 'Interpreter', 'latex');
+    set(ylab, 'FontName', plt_set.fontname, 'FontSize', plt_set.y_font_dim);
+
+    grid on;
+    ax.XGrid = 'off';
+    ax.YGrid = 'on';
+    ax.GridAlpha = 0.15;
+
+    x_min = min(pos_unique) - 0.75;
+    x_max = max(pos_unique) + 0.75;
+    xlim(ax, [x_min, x_max]);
+
+    line_w_box = 1.0;
+    line_w_mid = 1.0;
+    line_w_whi = 0.9;
+    line_w_out = 0.9;
+
+    get_case_from_pos = @(p) round(p - (ncase+gap_sys)*floor((p-1)/(ncase+gap_sys)));
+
+    hLines = findobj(ax, 'Type', 'Line');
+
+    for h = reshape(hLines,1,[])
+        xd = get(h, 'XData');
+        if isempty(xd) || all(isnan(xd)), continue; end
+
+        xmid = mean(xd(~isnan(xd)));
+        [~, idxp] = min(abs(pos_unique - xmid));
+        p = pos_unique(idxp);
+
+        cc = get_case_from_pos(p);
+        cc = max(1, min(ncase, cc));
+        col = use_rgb(cc,:);
+
+        tg = get(h, 'Tag');
+        switch tg
+            case 'Box'
+                set(h, 'Color', col, 'LineWidth', line_w_box);
+            case 'Median'
+                set(h, 'Color', col, 'LineWidth', line_w_mid);
+            case 'Whisker'
+                set(h, 'Color', col, 'LineWidth', line_w_whi);
+            case 'Upper Adjacent Value'
+                set(h, 'Color', col, 'LineWidth', line_w_whi);
+            case 'Lower Adjacent Value'
+                set(h, 'Color', col, 'LineWidth', line_w_whi);
+            case 'Outliers'
+                set(h, 'Color', col, 'LineWidth', line_w_out, ...
+                       'MarkerEdgeColor', col, 'MarkerFaceColor', col);
+            otherwise
+        end
+    end
+
+    % ===================== X ticks: only System labels at group centers (bottom) =====================
+    centers = NaN(nsys,1);
+    for ss = 1:nsys
+        base = (ss-1)*(ncase + gap_sys);
+        centers(ss) = base + (ncase+1)/2;
+    end
+
+    set(ax, 'XTick', centers);
+    set(ax, 'TickLabelInterpreter', 'latex');
+    xticklabels(arrayfun(@(k) sprintf('$\\mathbf{System\\ %d}$', k), sys_list, 'UniformOutput', false));
+    ax.XTickLabelRotation = 0;
+
+    % ===================== legend on top =====================
+    case_names = {'WN','IBW','IBN','OB'};
+    hLeg = gobjects(1,ncase);
+    for c = 1:ncase
+        hLeg(c) = line(ax, [NaN NaN], [NaN NaN], ...
+            'Color', use_rgb(c,:), 'LineWidth', 6);
+    end
+    lgd = legend(hLeg, case_names, 'Location','northoutside');
+    set(lgd, 'Orientation','horizontal', 'Box','off');
+    lgd.FontName = plt_set.fontname;
+    lgd.FontSize = plt_set.fontsize;
+
+    set(ax,'LooseInset', max(get(ax,'TightInset'), 0.02));
+    fig.PaperPositionMode = 'auto';
+    drawnow;
+
+    % ===================== Save =====================
+    outdir = fullfile(pwd, 'figures');
+    if ~exist(outdir,'dir'); mkdir(outdir); end
+
+    suffix_clean = regexprep(extra_suffix, '^_+', '');
+    suffix_clean = regexprep(suffix_clean, '[^A-Za-z0-9\.\-]+', '_');
+
+%     base = sprintf('Boxplot_RMSE_allSys_bestGbyMeanRMS_ft%02d_%s', f_target, suffix_clean);
+% 
+%     savefig(fig, fullfile(outdir, [base, '.fig']));
+%     exportgraphics(fig, fullfile(outdir, [base, '.png']), 'Resolution', 300, 'BackgroundColor', 'white');
+% 
+%     fprintf('FIG saved to: %s\n', fullfile(outdir,[base,'.fig']));
+%     fprintf('PNG saved to: %s\n', fullfile(outdir,[base,'.png']));
+
+    % ===================== Print stats =====================
+    fprintf('==== RMS error stats (by system, case) ====\n');
+    for ss = 1:nsys
+        for cc = 1:ncase
+            v = squeeze(RMS(ss, cc, :)); v = v(~isnan(v));
+            if ~isempty(v)
+                fprintf('System %d case=%d | N=%d | mean=%.4f | min=%.4f | max=%.4f | bestg=%d | %s\n', ...
+                    sys_list(ss), SIs(cc), numel(v), mean(v), min(v), max(v), ...
+                    best_g(ss,cc), extra_suffix);
+            else
+                fprintf('System %d case=%d | no valid RMS data | %s\n', sys_list(ss), SIs(cc), extra_suffix);
+            end
+        end
     end
 end
 
-set(ax,'LooseInset', max(get(ax,'TightInset'), 0.02));
-fig.PaperPositionMode = 'auto';
-drawnow;
+function [Y_all, lens] = local_load_Yall(fname_big, sysnum, f_target, si, nruns, y_fields)
+    Y_all = cell(1, nruns);
+    lens  = zeros(1, nruns);
 
-% --- Make x tick labels bold (TeX interpreter needed for \textbf) ---
-set(ax, 'TickLabelInterpreter', 'latex');
+    for i = 1:nruns
+        varname = sprintf('s%02d_r%02d_case%02d_run%02d', sysnum, f_target, si, i);
+        try
+            S = load(fname_big, varname);
+            if ~isfield(S, varname), continue; end
+            rec = S.(varname);
 
-% ======= Save =======
-outdir = fullfile(pwd, 'figures');
-if ~exist(outdir,'dir'); mkdir(outdir); end
+            y = [];
+            for fn = y_fields
+                if isfield(rec, fn{1}) && ~isempty(rec.(fn{1}))
+                    y = rec.(fn{1});
+                    break;
+                end
+            end
+            if isempty(y), continue; end
 
-suffix_clean = regexprep(extra_suffix, '^_+', '');
-suffix_clean = regexprep(suffix_clean, '[^A-Za-z0-9\.\-]+', '_');
+            y = squeeze(y);
+            y = y(:,:);
 
-base = sprintf('Boxplot_RMSE_bestGbyRMSEbar_sys%02d_ft%02d_%s', sysnum, f_target, suffix_clean);
-
-savefig(fig, fullfile(outdir,[base,'.fig']));
-exportgraphics(fig, fullfile(outdir,[base,'.png']), 'Resolution',300, 'BackgroundColor','white');
-
-fprintf('FIG saved to: %s\n', fullfile(outdir,[base,'.fig']));
-fprintf('PNG saved to: %s\n', fullfile(outdir,[base,'.png']));
-
-fprintf('==== Best-setting statistics (by case) ====\n');
-for c = 1:num_cases
-    v = Data(:, c); v = v(~isnan(v));
-    if ~isempty(v) && isfinite(best_g(c))
-        lam = lambda_list(best_g(c)+1);
-        fprintf(['case=%d | g=%d (lambda=%.3g) | RMSEbar=%.6g | N=%d | ', ...
-                 'mean=%.4g | median=%.4g | min=%.4g | max=%.4g\n'], ...
-            SIs(c), best_g(c), lam, best_RMSEbar(c), numel(v), ...
-            mean(v), median(v), min(v), max(v));
-    else
-        fprintf('case=%d | no valid RMSE data | RMSEbar=%s\n', ...
-            SIs(c), num2str(best_RMSEbar(c)));
+            Y_all{i} = y;
+            lens(i)  = size(y,1);
+        catch
+        end
     end
-end
-
-%% ========================= FUNCTIONS =========================
-
-function rmse_bar = local_rmsebar_meantraj_vs_ref(Ysopt, lensOpt, Fs, f_target)
-    % RMSEbar = RMSE( mean(y_seq_opt across runs) - reference )
-
-    rmse_bar = NaN;
-
-    good = find(~cellfun(@isempty, Ysopt) & isfinite(lensOpt) & lensOpt>0);
-    if isempty(good), return; end
-
-    Nmin = min(lensOpt(good));
-
-    Ymat = NaN(Nmin, numel(good));
-    for j = 1:numel(good)
-        y = Ysopt{good(j)};
-        Ymat(:,j) = y(1:Nmin);
-    end
-
-    ybar = mean(Ymat, 2, 'omitnan');
-
-    n = (0:Nmin-1).';
-    r = sin(2*pi*f_target/Fs * n);
-
-    diff = ybar - r;
-    rmse_bar = sqrt(mean(diff.^2, 'omitnan'));
 end
 
 function rgb = hex2rgb(h)
@@ -269,4 +330,3 @@ function rgb = hex2rgb(h)
     b = hex2dec(h(5:6));
     rgb = [r g b] / 255;
 end
-
