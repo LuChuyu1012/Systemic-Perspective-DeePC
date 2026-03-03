@@ -43,13 +43,27 @@ x(t+1)=Ax(t)+Bu(t),\qquad y(t)=Cx(t)+v(t).
 
 
 Here, $x(t)\in\mathbb{R}^2$ is the state, $u(t)\in\mathbb{R}$ is the input, and $y(t)\in\mathbb{R}$ is the measured output.  
-The term $v(t)$ denotes the measurement noise and is modeled as Gaussian white noise:
+The term $v(t)$ denotes the measurement noise and is modeled as Gaussian white noise.   Two noise levels are considered:
 ```math
 \begin{equation*}
-v(t)\sim\mathcal{N}(0,10^{-4}).
+v_1(t)\sim\mathcal{N}(0,10^{-4}),\qquad
+v_2(t)\sim\mathcal{N}(0,2.5\times10^{-3}).
 \end{equation*}
-```
 
+To eliminate the influence of different signal-to-noise ratios, an additional experiment is introduced. The measurement noise is fixed as \(v_1(t)\), and the input amplitude is adjusted so that the signal-to-noise ratio is kept the same across all scenarios, namely \(\mathrm{SNR}_{\mathrm{dB}} = 30\). Here, \(\mathrm{SNR}_{\mathrm{dB}}\) is defined as
+```math
+\begin{equation*}
+\mathrm{SNR}_{\mathrm{dB}}
+=
+20\log_{10}\!\left(
+\frac{
+\sqrt{\sum_{t=1}^{T}\left|y_0(t)\right|^2}
+}{
+\sqrt{\sum_{t=1}^{T}\left|v(t)\right|^2}
+}
+\right).
+\end{equation*}
+where $y_0(t)$ denotes the noise-free true output.
 
 The system matrices used in this benchmark are:
 ```math
