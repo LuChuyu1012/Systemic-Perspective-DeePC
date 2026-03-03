@@ -1,6 +1,5 @@
 clc; clear; close all;
 
-% ======= Configuration =======
 sysnum   = 5;
 f_target = 2;
 SIs      = 0:3;
@@ -8,21 +7,10 @@ nruns    = 50;
 
 Fs = 100;
 
-% ======= Convergence thresholds (SAME LOGIC AS YOUR ALL-SYS SCRIPT) =======
-eps_track  = 0.15;
-
-% ======= Candidate g list (SELECT BEST g) =======
 g_list = [0 1 2 3 5];
 
-% ======= Noise tag (must match saved files) =======
 suffix_list = {'_sigmae5e-02','_sigmae1e-02','_snr30dB'};
 
-% ======= Mapping g -> lambda (fixed mapping) =======
-lambda_map = containers.Map( ...
-    {0,    1,    2,   3,   5}, ...
-    {0.001,0.01,0.1, 1,   100} );
-
-% ======= data folder (CURRENT PATH /data) =======
 data_dir = fullfile(pwd, 'data');
 
 plt_set.y_font_dim     = 16;
@@ -43,27 +31,20 @@ for k = 1:numel(use_cases)
     use_rgb(k,:) = hex2rgb(case_hex_all{si+1});
 end
 
-% Output field priority inside each run record
-y_fields = {'y_seq_opt','y_seq','y','y_out'};
-
-num_cases    = numel(SIs);
+num_cases = numel(SIs);
 
 for mm = 1:numel(suffix_list)
 
     extra_suffix = suffix_list{mm};
     best_g       = NaN(1, num_cases);
-    best_lam     = NaN(1, num_cases);
 
-    fprintf(['==== Best g selection per case: minimize mean(RMSErun) across %d runs. ', ...
-             'Tie-break: first. ====\n'], nruns);
+    fprintf('==== Best g selection per case: minimize mean(rms_error) across %d runs. ====\n', nruns);
 
-    % ======= 1) select best g per case (LOGIC IDENTICAL TO YOUR REFERENCE SCRIPT) =======
     for c = 1:num_cases
         si = SIs(c);
 
-        RMSErun_mean_by_g = NaN(1, numel(g_list));
-        Ttrk_by_g         = NaN(1, numel(g_list));
-        Nvalid_by_g       = zeros(1, numel(g_list));
+        mean_rms_by_g = NaN(1, numel(g_list));
+        Nvalid_by_g   = zeros(1, numel(g_list));
 
         for gg = 1:numel(g_list)
             g = g_list(gg);
@@ -74,61 +55,54 @@ for mm = 1:numel(suffix_list)
                 continue;
             end
 
-            [Y_all, lens] = local_load_Yall(fname_sel, sysnum, f_target, si, nruns, y_fields);
+            rms_runs = NaN(1, nruns);
 
-            good = find(~cellfun(@isempty, Y_all) & lens > 0);
-            Nvalid_by_g(gg) = numel(good);
+            for i = 1:nruns
+                varname = sprintf('s%02d_r%02d_case%02d_run%02d', sysnum, f_target, si, i);
+                try
+                    S = load(fname_sel, varname);
+                    if ~isfield(S, varname), continue; end
+                    rec = S.(varname);
 
-            % run-wise RMSE vs reference (selection metric: mean)
-            rmse_mean = local_rmse_runs_vs_ref_mean(Y_all, lens, Fs, f_target);
-            RMSErun_mean_by_g(gg) = rmse_mean;
+                    if isfield(rec,'rms_error') && ~isempty(rec.rms_error)
+                        rms_runs(i) = mean(rec.rms_error(:));
+                    end
+                catch
+                end
+            end
 
-            Ttrk_by_g(gg) = local_convtime_track_to_ref(Y_all, lens, Fs, f_target, eps_track);
+            v = rms_runs(isfinite(rms_runs));
+            Nvalid_by_g(gg) = numel(v);
+
+            if ~isempty(v)
+                mean_rms_by_g(gg) = mean(v);
+            end
 
             if Nvalid_by_g(gg) ~= nruns
-                fprintf('case=%d g=%d | valid y=%d/%d | %s\n', si, g, Nvalid_by_g(gg), nruns, extra_suffix);
+                fprintf('case=%d g=%d | valid rms_error=%d/%d | %s\n', si, g, Nvalid_by_g(gg), nruns, extra_suffix);
             end
         end
 
-        finite_mean = isfinite(RMSErun_mean_by_g);
+        finite_mean = isfinite(mean_rms_by_g);
         if ~any(finite_mean)
-            fprintf('case=%d | no valid mean(RMSErun) across g (skip) | %s\n', si, extra_suffix);
+            fprintf('case=%d | no valid mean(rms_error) across g (skip) | %s\n', si, extra_suffix);
             continue;
         end
 
-        cand = RMSErun_mean_by_g;
+        cand = mean_rms_by_g;
         cand(~finite_mean) = inf;
 
         minMean = min(cand);
         idxs = find(cand == minMean);
-
         idx_min = idxs(1);
-
-        if numel(idxs) > 1
-            why = 'mean(RMSErun), tie->first';
-        else
-            why = 'mean(RMSErun)';
-        end
 
         gstar = g_list(idx_min);
         best_g(c) = gstar;
 
-        if isKey(lambda_map, gstar)
-            lam = lambda_map(gstar);
-        else
-            lam = NaN;
-        end
-        best_lam(c) = lam;
-
-        fprintf(['case=%d | best g=%d (lambda=%s) | ', ...
-                 'mean(RMSErun)=%s | Ttrk=%s | ', ...
-                 'valid y=%d/%d | pick=%s | %s\n'], ...
-            si, gstar, fmt4f(lam), ...
-            fmt4f(RMSErun_mean_by_g(idx_min)), fmt4f(Ttrk_by_g(idx_min)), ...
-            Nvalid_by_g(idx_min), nruns, why, extra_suffix);
+        fprintf('case=%d | best g=%d | mean(rms_error)=%g | valid=%d/%d | %s\n', ...
+            si, gstar, mean_rms_by_g(idx_min), Nvalid_by_g(idx_min), nruns, extra_suffix);
     end
 
-    % ======= 2) mean u_seq_opt for each case using best g =======
     Umean_all = cell(1, num_cases);
     N_all     = NaN(1, num_cases);
     n_used    = zeros(1, num_cases);
@@ -185,14 +159,8 @@ for mm = 1:numel(suffix_list)
         N_all(c)     = N;
         n_used(c)    = numel(good);
 
-        if isKey(lambda_map, g)
-            lam = lambda_map(g);
-        else
-            lam = NaN;
-        end
-
-        fprintf('case=%d | best g=%d (lambda=%s) | used %d/%d runs | N=%d | %s\n', ...
-            si, g, fmt4f(lam), n_used(c), nruns, N, extra_suffix);
+        fprintf('case=%d | best g=%d | used %d/%d runs | N=%d | %s\n', ...
+            si, g, n_used(c), nruns, N, extra_suffix);
     end
 
     valid = find(~cellfun(@isempty, Umean_all) & isfinite(N_all));
@@ -203,7 +171,6 @@ for mm = 1:numel(suffix_list)
     Nmin = min(N_all(valid));
     t = (0:Nmin-1).';
 
-    % ======= Plot =======
     fig = figure('Color','w','Name','Mean input (all cases)');
     fig.Units = plt_set.plot_unit;
     fig.Position(3) = plt_set.plot_dim_x;
@@ -252,124 +219,6 @@ for mm = 1:numel(suffix_list)
 % 
 %     fprintf('FIG saved to: %s\n', fullfile(outdir,[base,'.fig']));
 %     fprintf('PNG saved to: %s\n', fullfile(outdir,[base,'.png']));
-end
-
-%% ========================= FUNCTIONS =========================
-
-function [Y_all, lens] = local_load_Yall(fname_big, sysnum, f_target, si, nruns, y_fields)
-    Y_all = cell(1, nruns);
-    lens  = zeros(1, nruns);
-
-    for i = 1:nruns
-        varname = sprintf('s%02d_r%02d_case%02d_run%02d', sysnum, f_target, si, i);
-        try
-            S = load(fname_big, varname);
-            if ~isfield(S, varname), continue; end
-            rec = S.(varname);
-
-            y = [];
-            for fn = y_fields
-                if isfield(rec, fn{1}) && ~isempty(rec.(fn{1}))
-                    y = rec.(fn{1});
-                    break;
-                end
-            end
-            if isempty(y), continue; end
-
-            y = squeeze(y);
-            y = y(:,:);
-
-            Y_all{i} = y;
-            lens(i)  = size(y,1);
-        catch
-        end
-    end
-end
-
-function rmse_mean = local_rmse_runs_vs_ref_mean(Y_all, lens, Fs, f_target)
-    rmse_mean = NaN;
-
-    good = find(~cellfun(@isempty, Y_all) & lens > 0);
-    if isempty(good), return; end
-
-    Nmin = min(lens(good));
-    p    = size(Y_all{good(1)}, 2);
-
-    n = (0:Nmin-1).';
-    r = sin(2*pi*f_target/Fs * n);
-    if p > 1
-        r = repmat(r, 1, p);
-    end
-
-    rmse_vec = NaN(1, numel(good));
-
-    for k = 1:numel(good)
-        y = Y_all{good(k)};
-        y = y(1:Nmin, :);
-
-        diff = y - r;
-
-        if p == 1
-            rmse_vec(k) = sqrt(mean(diff.^2, 'omitnan'));
-        else
-            rmse_vec(k) = sqrt(mean(sum(diff.^2, 2), 'omitnan'));
-        end
-    end
-
-    rmse_vec = rmse_vec(isfinite(rmse_vec));
-    if isempty(rmse_vec), return; end
-
-    rmse_mean = mean(rmse_vec);
-end
-
-function Ttrk = local_convtime_track_to_ref(Y_all, lens, Fs, f_target, eps_track)
-    Ttrk = NaN;
-
-    good = find(~cellfun(@isempty, Y_all) & lens>0);
-    if isempty(good), return; end
-
-    Nmin = min(lens(good));
-    p    = size(Y_all{good(1)}, 2);
-
-    n = (0:Nmin-1).';
-    r = sin(2*pi*f_target/Fs * n);
-    if p > 1
-        r = repmat(r, 1, p);
-    end
-
-    e_max = zeros(Nmin,1);
-
-    for k = 1:Nmin
-        e_run = zeros(numel(good),1);
-        for idx = 1:numel(good)
-            y = Y_all{good(idx)}(1:Nmin, :);
-            ek = abs(y(k,:) - r(k,:));
-            e_run(idx) = max(ek);
-        end
-        e_max(k) = max(e_run);
-    end
-
-    below   = (e_max <= eps_track);
-    tail_ok = flipud(cummin(flipud(double(below)))) == 1;
-    k0      = find(tail_ok, 1, 'first');
-
-    if ~isempty(k0)
-        Ttrk = (k0 - 1)/Fs;
-    end
-end
-
-function s = fmt4f(x)
-    if isnan(x)
-        s = "NaN";
-    elseif isinf(x)
-        if x > 0
-            s = "Inf";
-        else
-            s = "-Inf";
-        end
-    else
-        s = sprintf('%.4f', x);
-    end
 end
 
 function rgb = hex2rgb(h)
