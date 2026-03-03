@@ -102,7 +102,7 @@ The spectra of the four inputs are reported below.
 
 ### Reference tracking visualization
 
-The following GIF shows the reference tracking performance achieved by the DeePC formulation under the above four input-design scenarios. For each scenario, 50 Monte Carlo simulations were conducted. All settings were kept identical across simulations, except for the initial state. The DeePC outputs are then averaged across the 50 simulations, and the resulting mean output trajectory is shown below.
+The following GIF shows the reference tracking performance achieved by the DeePC formulation under the above four input-design scenarios. For each scenario, 50 Monte Carlo simulations were conducted. All settings were kept identical across simulations, except for the initial state. In this case, the signal-to-noise ratio is fixed at $SNR_{dB} = 30$, and the measurement noise is given by $v_1(t)$. The DeePC outputs are then averaged across the 50 simulations, and the resulting mean output trajectory is shown below.
 
 <p align="center">
   <img src="imgs/experiments with noise/Anim2x2_sys01_ft02_snr30dB_step1_delay0.50s.gif" width="60%" alt='A two-blocks Hankel data structure'>
