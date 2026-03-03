@@ -49,7 +49,7 @@ The term $v(t)$ denotes the measurement noise and is modeled as Gaussian white n
 v_1(t)\sim\mathcal{N}(0,10^{-4}),\qquad
 v_2(t)\sim\mathcal{N}(0,2.5\times10^{-3}).
 \end{equation*}
-
+```
 To eliminate the influence of different signal-to-noise ratios, an additional experiment is introduced. The measurement noise is fixed as \(v_1(t)\), and the input amplitude is adjusted so that the signal-to-noise ratio is kept the same across all scenarios, namely \(\mathrm{SNR}_{\mathrm{dB}} = 30\). Here, \(\mathrm{SNR}_{\mathrm{dB}}\) is defined as
 ```math
 \begin{equation*}
@@ -63,6 +63,7 @@ To eliminate the influence of different signal-to-noise ratios, an additional ex
 }
 \right).
 \end{equation*}
+```
 where $y_0(t)$ denotes the noise-free true output.
 
 The system matrices used in this benchmark are:
